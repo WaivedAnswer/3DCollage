@@ -31,12 +31,10 @@ public:
     
     Vertex *GetVertex(int index);
     
-    Vertex *GetVertex(Vertex *vertex);
-    
     //to be called after import
     void InitQuadrics();
     //to be called after import
-     //have to call face calculate before vertex calculate
+    //have to call face calculate before vertex calculate
     void CalculateNormals();
     
     void AddVertex(Vertex vertex);

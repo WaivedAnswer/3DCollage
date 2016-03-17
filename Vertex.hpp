@@ -10,8 +10,6 @@
 #define Vertex_hpp
 
 #include <stdio.h>
-#include "Vertex.hpp"
-#include "Face.hpp"
 #include "WingedEdge.hpp"
 #include "SmfCommon.hpp"
 

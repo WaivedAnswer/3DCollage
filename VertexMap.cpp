@@ -56,20 +56,6 @@ Vertex *VertexMap::GetVertex(int index)
     return NULL;
 }
 
-Vertex *VertexMap::GetVertex(Vertex *vertex)
-{
-    if(vertex == NULL)
-    {
-        return NULL;
-    }
-    std::list<Vertex>::iterator it = find (vertexList.begin(), vertexList.end(), *vertex);
-    if(it != vertexList.end())
-    {
-        return &(*it);
-    }
-    return NULL;
-}
-
 //to be called after import
 void VertexMap::InitQuadrics()
 {

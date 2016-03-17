@@ -7,6 +7,7 @@
 //
 
 #include "Vertex.hpp"
+#include "Face.hpp"
 
 Vertex::Vertex()
 {
