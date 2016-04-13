@@ -86,6 +86,76 @@ void Face::CalculateNormal()
     
 }
 
+void Face::GetCentre(float (&fCentre)[COORDINATESIZE])
+{
+    
+    WingedEdge *originalFaceEdge = edge;
+    //W_edge *firstIndexEdge = &EdgeList[0];
+    WingedEdge *currFaceEdge = originalFaceEdge;
+    
+    //could do while loop instead
+    for( int j=0; j<MESHITEMSIZE; j++)
+    {
+        
+        if(currFaceEdge->GetRightFace() == this)
+        {
+            //as the edges have specific orderings if we use right prev must use starting index
+            //std::cout << " " << currFaceEdge->vertexIndexes[0] + 1;
+            
+            float coordinates[COORDINATESIZE] = {0,0,0};
+            currFaceEdge->GetStartVertex()->GetCoordinates(coordinates);
+            
+            AddCoordinates(fCentre, coordinates, fCentre);
+            
+            currFaceEdge = currFaceEdge->GetRightPrev();
+        }
+        else
+        {
+            //if using left prev need to use end vertex index
+            //std::cout << " " << currFaceEdge->vertexIndexes[1] + 1;
+            
+            float coordinates[COORDINATESIZE] = {0,0,0};
+            currFaceEdge->GetEndVertex()->GetCoordinates(coordinates);
+            
+            AddCoordinates(fCentre, coordinates, fCentre);
+            currFaceEdge = currFaceEdge->GetLeftPrev();
+        }
+    }
+    
+    ScaleCoordinates(fCentre, MESHITEMSIZE);
+    
+
+}
+
+void Face::GetVertices(float (&vertices)[MESHITEMSIZE][COORDINATESIZE])
+{
+    WingedEdge *originalFaceEdge = edge;
+    //W_edge *firstIndexEdge = &EdgeList[0];
+    WingedEdge *currFaceEdge = originalFaceEdge;
+    
+    //could do while loop instead
+    for( int j=0; j<MESHITEMSIZE; j++)
+    {
+        
+        if(currFaceEdge->GetRightFace() == this)
+        {
+            //as the edges have specific orderings if we use right prev must use starting index
+            currFaceEdge->GetStartVertex()->GetCoordinates(vertices[j]);
+            
+            currFaceEdge = currFaceEdge->GetRightPrev();
+        }
+        else
+        {
+            //if using left prev need to use end vertex index
+            currFaceEdge->GetEndVertex()->GetCoordinates(vertices[j]);
+
+            currFaceEdge = currFaceEdge->GetLeftPrev();
+        }
+    }
+
+}
+
+
 void Face::GetNormal(float (&vNormal)[COORDINATESIZE])
 {
     for(int i = 0; i<COORDINATESIZE; i++)
