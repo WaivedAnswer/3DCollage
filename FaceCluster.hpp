@@ -14,10 +14,13 @@
 #include "Face.hpp"
 class FaceCluster
 {
+public:
     FaceCluster();
     ~FaceCluster();
     void AddFace(Face* face);
     Face *GetFace(int index);
+    void Clear();
+    int GetCount();
     
 private:
     std::list<Face*> faceList;

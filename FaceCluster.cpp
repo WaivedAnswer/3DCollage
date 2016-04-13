@@ -38,3 +38,14 @@ Face *FaceCluster::GetFace(int index)
     }
     return NULL;
 }
+
+void FaceCluster::Clear() {    
+    faceList.clear();
+    count = 0;
+}
+
+int FaceCluster::GetCount() {
+    return count;
+}
+
+
