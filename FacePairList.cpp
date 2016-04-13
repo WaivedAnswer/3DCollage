@@ -38,3 +38,9 @@ FacePair* FacePairList::GetPair(int index)
     }
     return NULL;
 }
+
+int FacePairList::GetCount() {
+    return count;
+}
+
+

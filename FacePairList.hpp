@@ -15,10 +15,12 @@
 #include "FacePair.hpp"
 class FacePairList
 {
+public:
     FacePairList();
     ~FacePairList();
     void AddPair(FacePair* pair);
     FacePair *GetPair(int index);
+    int GetCount();
     
 private:
     std::list<FacePair*> pairList;
