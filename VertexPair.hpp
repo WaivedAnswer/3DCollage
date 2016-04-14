@@ -6,6 +6,11 @@
 //  Copyright © 2016 Quinn Ramsay. All rights reserved.
 //
 
+
+//---------------------------------
+//WE PROBABLY WON'T BE USING THIS
+//---------------------------------
+
 #ifndef VertexPair_hpp
 #define VertexPair_hpp
 

@@ -15,13 +15,10 @@
 #include "FaceCluster.hpp"
 class FaceClusterList
 {
-public:
     FaceClusterList();
     ~FaceClusterList();
     void AddCluster(FaceCluster* cluster);
     FaceCluster *GetCluster(int index);
-    void Clear();
-    int GetCount();
     
 private:
     std::list<FaceCluster*> clusterList;

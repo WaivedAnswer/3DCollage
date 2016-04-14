@@ -39,15 +39,3 @@ FaceCluster *FaceClusterList::GetCluster(int index)
     }
     return NULL;
 }
-
-void FaceClusterList::Clear() {
-    for (std::list<FaceCluster*>::iterator it = clusterList.begin(); it != clusterList.end(); it++) {
-        (*it)->Clear();
-    }
-}
-
-int FaceClusterList::GetCount() {
-    return count;
-}
-
-

@@ -7,10 +7,3 @@
 //
 
 #include "VertexPair.hpp"
-
-VertexPair();
-void MakePair(Vertex *v1, Vertex *v2);
-void SetVertex1(Vertex *v1);
-void SetVertex2(Vertex *v2);
-Vertex *GetVertex1();
-Vertex *GetVertex2();

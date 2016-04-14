@@ -23,7 +23,6 @@ public:
     
     
     void SetIndex(int findex);
-    int GetIndex();
     
     WingedEdge *GetEdge();
     void SetEdge(WingedEdge *fEdge);
@@ -31,6 +30,7 @@ public:
     void CalculateNormal();
     void GetCentre(float (&fCentre)[COORDINATESIZE]);
     void GetVertices(float (&vertices)[MESHITEMSIZE][COORDINATESIZE]);
+    
     void GetNormal(float (&vNormal)[COORDINATESIZE]);
     
     //called after normal is calculated

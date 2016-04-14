@@ -38,10 +38,6 @@ void Face::SetIndex(int findex)
 {
     index = findex;
 }
-int Face::GetIndex() {
-    return index;
-}
-
 //todo maybe make it const
 WingedEdge *Face::GetEdge()
 {
@@ -52,6 +48,7 @@ void Face::SetEdge(WingedEdge *fEdge)
 {
     edge = fEdge;
 }
+
 
 void Face::CalculateNormal()
 {
@@ -85,6 +82,7 @@ void Face::CalculateNormal()
     NormalizeVector(normal);
     
 }
+
 
 void Face::GetCentre(float (&fCentre)[COORDINATESIZE])
 {
@@ -154,7 +152,6 @@ void Face::GetVertices(float (&vertices)[MESHITEMSIZE][COORDINATESIZE])
     }
 
 }
-
 
 void Face::GetNormal(float (&vNormal)[COORDINATESIZE])
 {
