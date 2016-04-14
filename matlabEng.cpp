@@ -313,6 +313,7 @@ void generateNewMeshFile()
     {
         while(inFile >> token){
             //for each match, copy object file mesh and translate to center, add to existing new mesh file
+            int verCount =0;
             if (token == "M"){
                 inFile >> token >> tObjfilename >> cenX >> cenY >> cenZ;
                 int x,y,z;
@@ -321,6 +322,7 @@ void generateNewMeshFile()
                 z = atoi(cenZ.c_str());
                 ifstream inMeshFile(tObjfilename.c_str(),ios::in);
                 if ( inMeshFile.is_open()){
+                        int count=0;
                         ofstream outfile;
                         outfile.open("newMesh.smf", std::ios_base::app);
                         //Get first line for # n m
@@ -341,17 +343,19 @@ void generateNewMeshFile()
                                 inFile >> token3;
                                 curM[2] = atof(token3.c_str()) + z;
                                 outfile <<"\nv " <<curM[0] << " " <<curM[1] << " "<<curM[2];
+                                count++;
                             }
                             if (token0 == "f"){
                                 //Get face information and write to file
                                 inFile >> token1;
-                                faceM[0] = atof(token1.c_str());
+                                faceM[0] = atof(token1.c_str()) + verCount;
                                 inFile >> token2;
-                                faceM[1] = atof(token2.c_str());
+                                faceM[1] = atof(token2.c_str()) + verCount;
                                 inFile >> token3;
-                                faceM[2] = atof(token3.c_str());
+                                faceM[2] = atof(token3.c_str()) + verCount;
                                 outfile <<"\nf " <<faceM[0] << " " <<faceM[1] << " "<<faceM[2];
                             }
+                            verCount = verCount + count;
                         }
 
                     
