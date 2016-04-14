@@ -38,6 +38,11 @@ void Face::SetIndex(int findex)
 {
     index = findex;
 }
+
+int Face::GetIndex()
+{
+    return index;
+}
 //todo maybe make it const
 WingedEdge *Face::GetEdge()
 {

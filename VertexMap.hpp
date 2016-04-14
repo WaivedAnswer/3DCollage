@@ -11,6 +11,7 @@
 
 #include <stdio.h>
 #include <list>
+#include <algorithm>
 #include "Vertex.hpp"
 #include "Face.hpp"
 #include "WingedEdge.hpp"

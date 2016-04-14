@@ -23,6 +23,7 @@ public:
     
     
     void SetIndex(int findex);
+    int GetIndex();
     
     WingedEdge *GetEdge();
     void SetEdge(WingedEdge *fEdge);
