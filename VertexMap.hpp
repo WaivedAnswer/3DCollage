@@ -38,6 +38,8 @@ public:
     //have to call face calculate before vertex calculate
     void CalculateNormals();
     
+    void GetMaxAndMinDimensions(float (&max)[COORDINATESIZE], float (&min)[COORDINATESIZE]);
+    
     void AddVertex(Vertex vertex);
     
     bool EraseVertex(Vertex *vertex);
@@ -52,6 +54,8 @@ public:
 private:
     bool dirty;
     std::list<Vertex> vertexList;
+    float maxDimensions[COORDINATESIZE];
+    float minDimensions[COORDINATESIZE];
     int count;
 };
 

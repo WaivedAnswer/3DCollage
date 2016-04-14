@@ -49,5 +49,3 @@ void FaceClusterList::Clear() {
 int FaceClusterList::GetCount() {
     return count;
 }
-
-

@@ -698,6 +698,10 @@ WingedEdge *EdgeMap::GetRandomEdgeAtIndex(int index)
     }
     
     int hashCount = GetHashCount(index);
+    if(hashCount == 0)
+    {
+        return NULL;
+    }
     int randIndex = rand() % hashCount;
     
     for (int i = 0; i < randIndex; i++)
@@ -806,7 +810,7 @@ void EdgeMap::MCDecimateEdge(int k)
     //CollapseEdge(GetEdge(44,918), newVcoordinates);
     //ReHashEdges();
     //maxEdge->CheckEdgeForVertex(NULL);
-    delete kEdges;
+    delete[] kEdges;
 }
 void EdgeMap::MCDecimateNEdges(int N, int k)
 {

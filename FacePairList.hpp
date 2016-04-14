@@ -21,7 +21,6 @@ public:
     void AddPair(FacePair* pair);
     FacePair *GetPair(int index);
     int GetCount();
-    
 private:
     std::list<FacePair*> pairList;
     int count;

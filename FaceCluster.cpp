@@ -39,7 +39,7 @@ Face *FaceCluster::GetFace(int index)
     return NULL;
 }
 
-void FaceCluster::Clear() {    
+void FaceCluster::Clear() {
     faceList.clear();
     count = 0;
 }
@@ -47,5 +47,3 @@ void FaceCluster::Clear() {
 int FaceCluster::GetCount() {
     return count;
 }
-
-

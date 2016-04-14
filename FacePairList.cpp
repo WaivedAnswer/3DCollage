@@ -42,5 +42,3 @@ FacePair* FacePairList::GetPair(int index)
 int FacePairList::GetCount() {
     return count;
 }
-
-

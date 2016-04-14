@@ -1064,15 +1064,8 @@ void ReadMeshFile(const char * filename)
                         edges[i]->SetStartIndex(startIndex);
                         edges[i]->SetEndIndex(endIndex);
                         edges[i]->SetStartVertex(newVertexList.GetVertex(startIndex));
-                        if(edges[i]->GetStartVertex() == NULL)
-                        {
-                            return;
-                        }
+                        
                         edges[i]->SetEndVertex(newVertexList.GetVertex(endIndex));
-                        if(edges[i]->GetEndVertex() == NULL)
-                        {
-                            return;
-                        }
                         
                         EdgeMapList->AddEdge(edges[i]);
                     }
