@@ -13,9 +13,10 @@
 #include <list>
 #include "include/engine.h"
 #include "SmfCommon.hpp"
+#include "Vertex.hpp"
 #include "Face.hpp"
 #include "FaceCluster.hpp"
-#include "FaceClusterList.hpp"
+//#include "FaceClusterList.hpp"
 #include "Eigen/Dense"
 #include <fstream>
 
@@ -143,24 +144,35 @@ int matlabObjPCA(double M_x[], double M_y[], double M_z[],int vsize, string file
 }
 
 
-//input faceclusterid and find best match pca from obj
-//void bestFit(FaceClusterList *fcl)
-//{
-//    int vsize = 0;
-//    double F_x[] , F_y[] ,F_z[];
-//    
-//    for (int i = 0; i < fcl->GetCount(); i++){
-//        FaceCluster *fci = fcl->GetCluster(i);
-//        for (int j = 0; j < fci->GetCount(); j++){
-//            Face *face = fci->GetFace(j);
-//            for ( int h = 0; h < COORDINATESIZE; h ++){
-//                float ver[3][3];
-//                face->GetVertices(ver);
-//                vsize = vsize+3;
-//            }
-//        }
-//    }
-//}
+void fclPCA(FaceClusterList *fcl)
+{
+    int vsize = 0;
+    string filename ="";
+    for (int i = 0; i < fcl->GetCount(); i++){
+        FaceCluster *fci = fcl->GetCluster(i);
+        filename = i; // filename = cluster index
+        vsize = fci->GetCount()*3;
+        double F_x[vsize] , F_y[vsize] ,F_z[vsize];
+        int k=0;
+        for (int j = 0; j < fci->GetCount(); j++){
+            Face *face = fci->GetFace(j);
+            for ( int h = 0; h < COORDINATESIZE; h ++){
+                float ver[3][3];
+                face->GetVertices(ver);
+                //retrieve all the vertice and pass them to PCA function
+                for (int v = 0; v<3; v++){
+                    F_x[k] = ver[v][0];
+                    F_y[k] = ver[v][1];
+                    F_z[k] = ver[v][2];
+                    k++;
+                }
+            }
+        }
+        matlabObjPCA(F_x, F_y, F_z, vsize, filename);
+    }
+
+    
+}
 
 int test()
 {

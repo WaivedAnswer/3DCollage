@@ -10,11 +10,12 @@
 #define matlabEng_hpp
 
 #include <iostream>
+#include "FaceClusterList.hpp"
 
 
 
 
-
+void fclPCA(FaceClusterList);
 int matlabObjPCA(double[], double[], double[],int, std::string);
 
 #endif /* matlabEng_hpp */
