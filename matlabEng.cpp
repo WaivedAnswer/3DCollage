@@ -20,25 +20,23 @@
 #include "Eigen/Dense"
 #include <fstream>
 
-
-//create a folder in local that contains all the matlab include files
-//copy or put shortcut of libmx and libeng in local and add to libker library
-
 #define  BUFSIZE 256
 
 using namespace std;
 using namespace Eigen;
 
-int vnum;
-MatrixXd Mesh;
+int vnum, fnum;
+MatrixXd Mesh, fMesh;
 string filename;
 
 
-void readSMF(){
-    filename = "man.smf";
-    int a;
+void readSMF(string filename){
+    
+    int a,b;
     string token0, token1, token2, token3;
     ifstream inFile(filename.c_str(),ios::in);
+    Mesh.resize(0,0);
+    fMesh.resize(0,0);
     
     if (inFile.is_open())
     {
@@ -46,9 +44,13 @@ void readSMF(){
         //Get first line for # n m
         inFile>>token0 >>token1 >> token2;
         a = atoi(token1.c_str());
+        b = atoi(token2.c_str());
         vnum = a;
+        fnum = b;
         MatrixXd curM(3,vnum);
+        MatrixXd faceM(3,fnum);
         int verNum =0;
+        int faceNum = 0;
         while(inFile >> token0){
             if (token0 == "v"){
                 //Get vertices information
@@ -60,9 +62,20 @@ void readSMF(){
                 curM(2,verNum) = atof(token3.c_str());
                 verNum++;
             }
+            if (token0 == "f"){
+                //Get face information
+                inFile >> token1;
+                faceM(0,faceNum) = atof(token1.c_str());
+                inFile >> token2;
+                faceM(1,faceNum) = atof(token2.c_str());
+                inFile >> token3;
+                faceM(2,faceNum) = atof(token3.c_str());
+                faceNum++;
+            }
         }
         
         // cout << "size = " <<curM.rows() << " x " << curM.cols() << endl;
+        fMesh = faceM;
         Mesh = curM;
         inFile.close();
     }else{
@@ -73,11 +86,11 @@ void readSMF(){
     
 }
 
-int matlabObjPCA(double M_x[], double M_y[], double M_z[],int vsize, string filename)
+int matlabObjPCA(double M_x[], double M_y[], double M_z[],int vsize, string filename, int type) //type1 = cluster, type2 = smf file input
 {
     Engine *ep;
     mxArray *X = NULL, *Y = NULL, *Z = NULL;
-    char buffer[BUFSIZE+1];
+//    char buffer[BUFSIZE+1];
     double MX[vsize], MY[vsize], MZ[vsize];
     
     
@@ -127,8 +140,23 @@ int matlabObjPCA(double M_x[], double M_y[], double M_z[],int vsize, string file
     string comm1 = ("filename = '"+filename+"'");
     engEvalString(ep, comm1.c_str());
     engEvalString(ep, "[pc,~,~,~] = pca(V);");
-    engEvalString(ep, "fileID = fopen('objPCA.txt','a+t','n');");
-    engEvalString(ep, "formatSpec = '\\n%s %s %s %s %s %s %s %s %s %s';");
+    
+    if (type==1){
+        engEvalString(ep, "cenX = sum(V(:,1))/numPoint;");
+        engEvalString(ep, "cenY = sum(V(:,2))/numPoint;");
+        engEvalString(ep, "cenZ = sum(V(:,3))/numPoint;");
+        engEvalString(ep, "fileID = fopen('clusterPCA.txt','a+t','n');");
+        engEvalString(ep, "formatSpec = '\\nC %s %d %d %d %s %s %s %s %s %s %s %s %s';");
+        engEvalString(ep, "fprintf(fileID,formatSpec,filename, cenX, cenY, cenz, num2str(pc(1,1)), num2str(pc(1,2)),num2str(pc(1,3)),num2str(pc(2,1)),num2str(pc(2,2)),num2str(pc(2,3)),num2str(pc(3,1)),num2str(pc(3,2)),num2str(pc(3,3)));");
+        engEvalString(ep, "fclose(fileID);");
+    }else{
+        engEvalString(ep, "fileID = fopen('objPCA.txt','a+t','n');");
+        engEvalString(ep, "formatSpec = '\\nO %s %s %s %s %s %s %s %s %s %s';");
+        engEvalString(ep, "fprintf(fileID,formatSpec,filename, num2str(pc(1,1)), num2str(pc(1,2)),num2str(pc(1,3)),num2str(pc(2,1)),num2str(pc(2,2)),num2str(pc(2,3)),num2str(pc(3,1)),num2str(pc(3,2)),num2str(pc(3,3)));");
+        engEvalString(ep, "fclose(fileID);");
+    }
+    
+    
     engEvalString(ep, "fprintf(fileID,formatSpec,filename, num2str(pc(1,1)), num2str(pc(1,2)),num2str(pc(1,3)),num2str(pc(2,1)),num2str(pc(2,2)),num2str(pc(2,3)),num2str(pc(3,1)),num2str(pc(3,2)),num2str(pc(3,3)));");
     engEvalString(ep, "fclose(fileID);");
     
@@ -168,15 +196,112 @@ void fclPCA(FaceClusterList *fcl)
                 }
             }
         }
-        matlabObjPCA(F_x, F_y, F_z, vsize, filename);
+        matlabObjPCA(F_x, F_y, F_z, vsize, filename, 1);
     }
 
     
 }
 
+void bestFit(int index, double tPCA[], double tcen[]){
+    //get index, get pca[]
+    //read ObjPCA file
+    //find min difference
+    //output to match.txt
+    //format: number, filename, cen_x,y,z
+    string filename = "objPCA.txt";
+    string tType, tObjFilename, token;
+    ifstream inFile(filename.c_str(),ios::in);
+    double minDiff=0;
+    string minFile;
+    
+    if (inFile.is_open())
+    {
+        double objpc[9];
+        
+        //initiate min data from object 1
+        if(inFile >> tType){
+            if (tType == "O"){
+                inFile >> tObjFilename;
+                for ( int i = 0; i<9; i++){
+                    inFile >> token;
+                    objpc[i] = atof(token.c_str());
+                    minDiff = minDiff + abs(tPCA[i] - objpc[i]);
+                }
+                minFile = tObjFilename;
+            }
+        }
+            
+        //look for other data and compare
+        while(inFile >> tType){
+            if (tType == "O"){
+                double cur_diff = 0;
+                inFile >> tObjFilename;
+                for ( int i = 0; i<9; i++){
+                    inFile >> token;
+                    objpc[i] = atof(token.c_str());
+                    cur_diff = cur_diff + abs(tPCA[i] - objpc[i]);
+                }
+                if ( cur_diff < minDiff){
+                    minDiff = cur_diff;
+                    minFile = tObjFilename;
+                }
+                
+            }
+        }
+        inFile.close();
+        //Append new match data to match.txt
+        ofstream outfile;
+        outfile.open("match.txt", std::ios_base::app);
+        outfile <<"\n" << index <<" " << minFile.c_str() << " " <<tcen[0] << " " <<tcen[1] << " " <<tcen[2];
+        outfile.close();
+
+    }else{
+        cout << "Unable to open file" << endl;
+    }
+    return;
+}
+
+
+void comparePCA(){
+    string filename = "clusterPCA.txt";
+    string tType, tObjIndex, token;
+    ifstream inFile(filename.c_str(),ios::in);
+    
+    if (inFile.is_open())
+    {
+        double tarpc[9], cen[3];
+        int tarIndex=0;
+        while(inFile >> tType){
+            if (tType == "C"){
+                //Get Target PCA information
+                inFile >> tObjIndex;
+                tarIndex = atof(tObjIndex.c_str());
+                for ( int i = 0; i<3; i++){
+                    inFile >> token;
+                    cen[i] = atof(token.c_str());
+                }
+                for ( int i = 0; i<9; i++){
+                    inFile >> token;
+                    tarpc[i] = atof(token.c_str());
+                }
+                bestFit(tarIndex, tarpc, cen);
+            }
+        }
+        inFile.close();
+    }else{
+        cout << "Unable to open file" << endl;
+    }
+    return;
+    
+}
+
+
+
+
 int test()
 {
-    readSMF();
+    string filename = "man.smf";
+    readSMF(filename);
     if (vnum!=0){
         double M_x[vnum],M_y[vnum],M_z[vnum];
         for (int i=0; i<vnum; i++){
@@ -184,7 +309,7 @@ int test()
             M_y[i] = Mesh(1,i);
             M_z[i] = Mesh(2,i);
         }
-        matlabObjPCA(M_x,M_y,M_z,vnum, filename);
+        matlabObjPCA(M_x,M_y,M_z,vnum, filename, 2);
     }
     
     
