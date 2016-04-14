@@ -252,7 +252,7 @@ void bestFit(int index, double tPCA[], double tcen[]){
         //Append new match data to match.txt
         ofstream outfile;
         outfile.open("match.txt", std::ios_base::app);
-        outfile <<"\n" << index <<" " << minFile.c_str() << " " <<tcen[0] << " " <<tcen[1] << " " <<tcen[2];
+        outfile <<"\nM" << index <<" " << minFile.c_str() << " " <<tcen[0] << " " <<tcen[1] << " " <<tcen[2];
         outfile.close();
 
     }else{
@@ -295,7 +295,90 @@ void comparePCA(){
     
 }
 
+void generateNewMeshFile()
+{
+    string filename = "match.txt";
+    string tObjfilename, token, cenX, cenY, cenZ;
+    ifstream inFile(filename.c_str(),ios::in);
 
+    
+    //match: clusterIndex, objectFile, center
+    
+    //read in all v and f from objectfile
+    //tranlate v by center
+    //Append to NewMesh.txt file
+
+    
+    if (inFile.is_open())
+    {
+        while(inFile >> token){
+            //for each match, copy object file mesh and translate to center, add to existing new mesh file
+            if (token == "M"){
+                inFile >> token >> tObjfilename >> cenX >> cenY >> cenZ;
+                int x,y,z;
+                x = atoi(cenX.c_str());
+                y = atoi(cenY.c_str());
+                z = atoi(cenZ.c_str());
+                ifstream inMeshFile(tObjfilename.c_str(),ios::in);
+                if ( inMeshFile.is_open()){
+                        ofstream outfile;
+                        outfile.open("newMesh.txt", std::ios_base::app);
+                        //Get first line for # n m
+                        int a,b;
+                        string token0, token1, token2, token3;
+                        inFile>>token0 >>token1 >> token2;
+                        a = atoi(token1.c_str());
+                        b = atoi(token2.c_str());
+                        double curM[3];
+                        int faceM[3];
+                        while(inFile >> token0){
+                            if (token0 == "v"){
+                                //Get vertices information and translate to originate at cluster center
+                                inFile >> token1;
+                                curM[0] = atof(token1.c_str()) + x;
+                                inFile >> token2;
+                                curM[1] = atof(token2.c_str()) + y ;
+                                inFile >> token3;
+                                curM[2] = atof(token3.c_str()) + z;
+                                outfile <<"\nv " <<curM[0] << " " <<curM[1] << " "<<curM[2];
+                            }
+                            if (token0 == "f"){
+                                //Get face information and write to file
+                                inFile >> token1;
+                                faceM[0] = atof(token1.c_str());
+                                inFile >> token2;
+                                faceM[1] = atof(token2.c_str());
+                                inFile >> token3;
+                                faceM[2] = atof(token3.c_str());
+                                outfile <<"\nf " <<faceM[0] << " " <<faceM[1] << " "<<faceM[2];
+                            }
+                        }
+
+                    
+                    inMeshFile.close();
+                    outfile.close();
+                    
+                }else{
+                    cout << "Unable to open file" << endl;
+                }
+
+                
+            }
+        }
+        inFile.close();
+    }else{
+        cout << "Unable to open file" << endl;
+    }
+    return;
+}
+
+void deleteFiles(){
+        if( remove( "match.txt" ) != 0 || remove( "objPCA.txt" ) != 0 || remove( "clusterPCA.txt" ) != 0 )
+            perror( "Error deleting file" );
+        else
+            puts( "File successfully deleted" );
+    return;
+}
 
 
 int test()

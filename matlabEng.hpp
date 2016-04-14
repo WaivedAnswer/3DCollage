@@ -13,10 +13,12 @@
 #include "FaceClusterList.hpp"
 
 
-void bestFit(int, double[], double[]);
+void deleteFiles();
 void readSMF(std::string);
 void fclPCA(FaceClusterList);
 int matlabObjPCA(double[], double[], double[],int, std::string);
 void bestFit(int, double[], double[]);
+void comparePCA();
+void generateNewMeshFile();
 
 #endif /* matlabEng_hpp */
