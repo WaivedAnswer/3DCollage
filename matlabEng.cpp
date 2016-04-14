@@ -322,7 +322,7 @@ void generateNewMeshFile()
                 ifstream inMeshFile(tObjfilename.c_str(),ios::in);
                 if ( inMeshFile.is_open()){
                         ofstream outfile;
-                        outfile.open("newMesh.txt", std::ios_base::app);
+                        outfile.open("newMesh.smf", std::ios_base::app);
                         //Get first line for # n m
                         int a,b;
                         string token0, token1, token2, token3;
