@@ -1,0 +1,37 @@
+Xcode setup for matlab engine
+
+Link Binary with libraries:
+Add libeng.dylib and libmx.dylib
+
+Project Build Settings:
+go to build settings search "Library Search Paths" add 
+[matlab.app_root]/bin/maci64
+e.g. for mac
+/Applications/MATLAB_R2015b.app/bin/maci64
+
+
+At the menu bar click on Product -> edit scheme ->Run ->Arguments
+At Environment Variables add:
+Name:
+DYLD_LIBRARY_PATH
+Value:		
+[matlab.root]/bin/maci64:/[matlab.root]/sys/os/maci64:$DYLD_LIBRARY_PATH
+e.g. for mac
+/Applications/MATLAB_R2015b.app/bin/maci64:/Applications/MATLAB_R2015b.app/sys/os/maci64:$DYLD_LIBRARY_PATH
+
+
+Matlab engine MacOSX SDK not found error:
+In MATLAB_R2015b/bin/maci64/mexopts/clang_maci64.xml and 
+MATLAB_R2015b/bin/maci64/mexopts/clang++_maci64.xml,
+change sdk file to the machine's sdk version
+	<dirExists name="$$/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk" />
+and 
+	<cmdReturns name="find $$ -name MacOSX10.10.sdk" />
+
+to 
+	<dirExists name="$$/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk" />
+and
+	<cmdReturns name="find $$ -name MacOSX10.11.sdk" />
+
+you can check the SDKs' version at
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs
