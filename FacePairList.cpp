@@ -16,11 +16,12 @@ FacePairList::~FacePairList()
 {
     
 }
-void FacePairList::AddPair(FacePair* pair)
+void FacePairList::AddPair(const FacePair &pair)
 {
     pairList.push_back(pair);
     count++;
 }
+
 FacePair* FacePairList::GetPair(int index)
 {
     if(index > count)
@@ -28,11 +29,11 @@ FacePair* FacePairList::GetPair(int index)
         return NULL;
     }
     int pairCount = 0;
-    for (std::list<FacePair*>::iterator it = pairList.begin(); it != pairList.end(); it++)
+    for (std::list<FacePair>::iterator it = pairList.begin(); it != pairList.end(); it++)
     {
         if (pairCount == index)
         {
-            return *it;
+            return &(*it);
         }
         pairCount++;
     }

@@ -20,6 +20,11 @@
 #include "EdgeMap.hpp"
 #include "FaceVoxel.hpp"
 #include "VoxelGrid.hpp"
+#include "FacePair.hpp"
+#include "FacePairList.hpp"
+#include "FaceCluster.hpp"
+#include "FaceClusterList.hpp"
+#include "ConcavitySeg.h"
 #include "SmfCommon.hpp"
 
 
@@ -1174,7 +1179,117 @@ void OutputMeshFile(const char * filename)
     }
 }
 
+//tests getSegmentationMap with a pyramid mesh to determine whether it clusters correctly
+//also Draws to screen
+void pyramidClusterDrawTest()
+{
+    FacePairList pairList;
+    FacePairList missList;
+    for ( std::list<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); ++it )
+    {
+        Face *firstFace = &(*it);
+        for ( std::list<Face>::iterator it2 = newFaceList.GetBeginIterator(); it2 != newFaceList.GetEndIterator(); ++it2 )
+        {
+            Face *secondFace = &(*it);
+            FacePair pair(firstFace, secondFace);
+            pairList.AddPair(pair);
+        }
+    }
+    
+    FaceClusterList* clusterList = getSegmentationMap(&pairList,  &missList, &newFaceList, 2);
+    
+    int clusterCount = 0;
+    for ( std::list<FaceCluster>::iterator it = clusterList->GetBeginIterator(); it != clusterList->GetEndIterator(); ++it )
+    {
+        FaceCluster *currentCluster = &(*it);
+        clusterCount++;
+        for ( std::list<Face*>::iterator it2 = currentCluster->GetBeginIterator(); it2 != currentCluster->GetEndIterator(); ++it2 )
+        {
+            Face *currentFace = *it2;
+            //glEnable(GL_POLYGON_OFFSET_FILL);
+            glDisable(GL_LIGHTING);
+        
+            glBegin(GL_TRIANGLES);
+            
+            int colours = 8;
+            switch (clusterCount%colours)
+            {
+                case 0:
+                    glColor3f(0.2f, 0.2f, 0.2f);
+                    break;
+                case 1:
+                    glColor3f(0.2f, 0.2f, 0.8f);
+                    break;
+                case 2:
+                    glColor3f(0.2f, 0.8f, 0.2f);
+                    break;
+                case 3:
+                    glColor3f(0.2f, 0.8f, 0.8f);
+                    break;
+                case 4:
+                    glColor3f(0.8f, 0.2f, 0.2f);
+                    break;
+                case 5:
+                    glColor3f(0.8f, 0.2f, 0.8f);
+                    break;
+                case 6:
+                    glColor3f(0.8f, 0.8f, 0.2f);
+                    break;
+                case 7:
+                    glColor3f(0.8f, 0.8f, 0.8f);
+                    break;
+            }
+            
+            WingedEdge *originalFaceEdge = currentFace->GetEdge();
+            //W_edge *firstIndexEdge = &EdgeList[0];
+            WingedEdge *currFaceEdge = originalFaceEdge;
+            
+            
+            //need to repeat first vertex coordinate so MESHITEM + 1
+            for( int j=0; j<MESHITEMSIZE; j++)
+            {
+                
+                if(currFaceEdge->GetRightFace() == currentFace)
+                {
+                    //TODO modify how/when surface normals are created
+                    
+                    float coordinates[COORDINATESIZE] = {0,0,0};
+                    currFaceEdge->GetStartVertex()->GetCoordinates(coordinates);
+                    
+                    float surfaceNormal[3] = {0,0,0};
+                    currentFace->GetNormal(surfaceNormal);
+                    
+                    glNormal3fv(surfaceNormal);
+                    glVertex3fv(coordinates);
+                    currFaceEdge = currFaceEdge->GetRightPrev();
+                }
+                else
+                {
+                    
+                    float coordinates[COORDINATESIZE] = {0,0,0};
+                    currFaceEdge->GetEndVertex()->GetCoordinates(coordinates);
+                    
+                    float surfaceNormal[3] = {0,0,0};
+                    currentFace->GetNormal(surfaceNormal);
+                    
+                    glNormal3fv(surfaceNormal);
+                    glVertex3fv(coordinates);
+                    currFaceEdge = currFaceEdge->GetLeftPrev();
+                }
+            }
 
+            glEnd();
+            
+        }
+    }
+    
+    if(clusterList != NULL)
+    {
+        delete clusterList;
+        clusterList = NULL;
+    }
+    
+}
 /***************************************** myGlutIdle() ***********/
 
 void myGlutIdle( void )
@@ -1232,7 +1347,8 @@ void myGlutDisplay( void )
                 DrawWireframe();
                 break;
             case FLATSHADED:
-                DrawVoxelShaded();
+                pyramidClusterDrawTest();
+                //DrawVoxelShaded();
                 //DrawFlatShaded();
                 break;
             case SMOOTHSHADED:

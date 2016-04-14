@@ -17,6 +17,11 @@ class FaceCluster
 public:
     FaceCluster();
     ~FaceCluster();
+    
+    std::list<Face*>::iterator GetBeginIterator();
+    
+    std::list<Face*>::iterator GetEndIterator();
+    
     void AddFace(Face* face);
     Face *GetFace(int index);
     void Clear();
