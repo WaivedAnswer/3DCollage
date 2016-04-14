@@ -48,7 +48,7 @@ FaceClusterList* getSegmentationMap(FacePairList *canSee, FacePairList *cannotSe
     //// Split the faces with k-means
     FaceClusterList *segs = new FaceClusterList();
     for (int i = 0; i < k; i++) {
-        segs->AddCluster(new FaceCluster());
+        segs->AddCluster(FaceCluster());
     }
 
     // assign each face an initial group
@@ -65,7 +65,7 @@ FaceClusterList* getSegmentationMap(FacePairList *canSee, FacePairList *cannotSe
         changed = false;
     
         // calculate group centriods
-        delete oldCentroids;
+        delete[] oldCentroids;
         oldCentroids = centroids;
         centroids = new double[k * facen]();
         for (int i = 0; i < k; i++) {
@@ -93,7 +93,7 @@ FaceClusterList* getSegmentationMap(FacePairList *canSee, FacePairList *cannotSe
         }
 
         // assign each face to the group with the nearest centriod
-        segs->Clear();
+        segs->ClearClusters();
         for (int n = 0; n < facen; n++) {
             double closest = -1;
             int clClust = 0;
@@ -115,9 +115,9 @@ FaceClusterList* getSegmentationMap(FacePairList *canSee, FacePairList *cannotSe
         
     
 
-    delete centroids;
-    delete oldCentroids;
-    delete conMatrix;
+    delete[] centroids;
+    delete[] oldCentroids;
+    delete[] conMatrix;
 
     return segs;
 }

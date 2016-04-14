@@ -16,6 +16,17 @@ FaceCluster::~FaceCluster()
 {
     
 }
+
+std::list<Face*>::iterator FaceCluster::GetBeginIterator()
+{
+    return faceList.begin();
+}
+
+std::list<Face*>::iterator FaceCluster::GetEndIterator()
+{
+    return faceList.end();
+}
+
 void FaceCluster::AddFace(Face* face)
 {
     faceList.push_back(face);

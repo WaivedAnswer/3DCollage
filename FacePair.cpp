@@ -14,6 +14,12 @@ FacePair::FacePair()
     face2 = NULL;
 }
 
+FacePair::FacePair(Face *f1, Face *f2)
+{
+    face1 = f1;
+    face2 = f2;
+}
+
 void FacePair::MakePair(Face *f1, Face *f2)
 {
     face1 = f1;
