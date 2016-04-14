@@ -18,13 +18,18 @@ class FaceClusterList
 public:
     FaceClusterList();
     ~FaceClusterList();
-    void AddCluster(FaceCluster* cluster);
+    
+    std::list<FaceCluster>::iterator GetBeginIterator();
+    
+    std::list<FaceCluster>::iterator GetEndIterator();
+    
+    void AddCluster(const FaceCluster &cluster);
     FaceCluster *GetCluster(int index);
-    void Clear();
+    void ClearClusters();
     int GetCount();
     
 private:
-    std::list<FaceCluster*> clusterList;
+    std::list<FaceCluster> clusterList;
     int count;
 };
 #endif /* FaceClusterList_hpp */

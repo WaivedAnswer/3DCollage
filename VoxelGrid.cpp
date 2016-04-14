@@ -72,7 +72,7 @@ void VoxelGrid::InsertFaces(FaceMap &faceList)
     
     CalculateVoxelDimensions(voxelDimensions, maxDims, minDims, gridDimension);
 
-    for ( std::list<Face>::iterator it = faceList.GetBeginIterator(); it != faceList.GetEndIterator(); it++ )
+    for ( std::list<Face>::iterator it = faceList.GetBeginIterator(); it != faceList.GetEndIterator(); ++it )
     {
         Face * currFace = &(*it);
         if(currFace == NULL)

@@ -39,6 +39,9 @@ public:
     
     void GetQuadric(Vertex * vertex, float (&vQuadric)[QUADRICSIZE]);
     
+    //ray list needs to be deleted afterwards
+    Vector3 * MakeRays(int k);
+    
 private:
     
     int index;

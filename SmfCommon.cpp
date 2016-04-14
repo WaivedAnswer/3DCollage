@@ -116,6 +116,10 @@ void VectorCross(const float (&vec1)[COORDINATESIZE], const float (&vec2)[COORDI
 
 void VectorCross(const float *vec1, const float *vec2, float (&cross)[3])
 {
+    if(vec1 == NULL || vec2 == NULL)
+    {
+        return;
+    }
     //TODO add checking
     for(int i = 0; i<COORDINATESIZE; i++)
     {
@@ -128,6 +132,20 @@ void VectorCross(const float *vec1, const float *vec2, float (&cross)[3])
 
 float VectorDot(const float (&vec1)[3], const float (&vec2)[3])
 {
+    float result = 0.0;
+    for(int i = 0; i<COORDINATESIZE; i++)
+    {
+        result += vec1[i] * vec2[i];
+    }
+    return result;
+}
+
+float VectorDot(const float *vec1, const float *vec2)
+{
+    if(vec1 == NULL || vec2 == NULL)
+    {
+        return 0.0;
+    }
     float result = 0.0;
     for(int i = 0; i<COORDINATESIZE; i++)
     {
