@@ -190,4 +190,9 @@ void Face::GetQuadric(Vertex *vertex, float (&vQuadric)[QUADRICSIZE])
     vQuadric[9] = d*d;
 }
 
+Vector3 * Face::MakeRays(int k)
+{
+    return NULL;
+}
+
 

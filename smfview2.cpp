@@ -194,24 +194,50 @@ void CleanupLists()
     CleanupVertexList();
 }
 
-bool CheckRayTriangleIntersection(Point v1, Point v2, Point v3, Point origin, Vector3 ray)
+
+bool CheckRayTriangleIntersection(Point &v1, Point &v2, Point &v3, Point &origin, Vector3 &ray, float &dist)
 {
     Vector3 e1, e2;
     Vector3 P, Q, T;
     float det, inv_det, u , v;
     float t;
-    float eps = 0.0001;
+    float eps = 0.000001;
     
     CreateVector(v2,v1,e1);
-    CreateVector(v3,v1,e1);
+    CreateVector(v3,v1,e2);
     VectorCross(ray, e2, P);
     det = VectorDot(e1, P);
-    if(det < eps )
+    if(det > -eps && det < eps )
+    {
+        return false;
+    }
+    inv_det = 1.f / det;
+    
+    CreateVector(origin, v1, T);
+    
+    //Calculate u parameter and test bound
+    u = VectorDot(T, P) * inv_det;
+    //The intersection lies outside of the triangle
+    if(u < 0.f || u > 1.f)
     {
         return false;
     }
     
+    //Prepare to test v parameter
+    VectorCross(T, e1, Q);
+    
+    //Calculate V parameter and test bound
+    v = VectorDot(ray, Q) * inv_det;
+    //The intersection lies outside of the triangle
+    if(v < 0.f || u + v  > 1.f)
+    {
+        return false;
+    }
+    
+    t = VectorDot(e2, Q) * inv_det;
+    
     return true;
+
 }
 
 //returns index of previous edge in edge list if exists for specified vertex indices
@@ -345,7 +371,7 @@ void DrawSmoothShaded(void)
     //glEnable(GL_POLYGON_OFFSET_FILL);
     glColor3f(0.8f, 0.2f, 0.2f);
     glBegin(GL_TRIANGLES);
-    for ( std::list<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); it++ )
+    for ( std::list<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); ++it )
     {
         Face * currFace = &(*it);
         if(currFace == NULL)
@@ -404,7 +430,7 @@ void DrawSmoothShaded(void)
     //float origin[COORDINATESIZE] = {0.0,0.0,0.0};
     firstFace->GetCentre(firstFaceCentre);
     
-    for ( std::list<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); it++ )
+    for ( std::list<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); ++it )
     {
         Face * currFace = &(*it);
         float currFaceCentre[COORDINATESIZE] = {0.0,0.0,0.0};
@@ -430,7 +456,7 @@ void DrawWireframe(void)
 {
     
     glColor3f(1.0f, 1.0f, 1.0f);
-    for ( std::list<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); it++ )
+    for ( std::list<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); ++it )
     {
         Face * currFace = &(*it);
         if(currFace == NULL)
@@ -572,7 +598,7 @@ void DrawVoxelShaded(void)
     }
     glEnd();
     
-    /*for ( std::list<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); it++ )
+    /*for ( std::list<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); ++it )
     {
 
         Face * currFace = &(*it);
@@ -629,7 +655,7 @@ void DrawFlatShaded(void)
     //glEnable(GL_POLYGON_OFFSET_FILL);
     glColor3f(0.8f, 0.2f, 0.2f);
     glBegin(GL_TRIANGLES);
-    for ( std::list<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); it++ )
+    for ( std::list<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); ++it )
     {
         Face * currFace = &(*it);
         if(currFace == NULL)
@@ -686,7 +712,7 @@ void DrawShadedMesh(void)
     
     glColor3f(0.8f, 0.2f, 0.2f);
     glBegin(GL_TRIANGLES);
-    for ( std::list<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); it++ )
+    for ( std::list<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); ++it )
     {
         Face *currFace = &(*it);
         if(currFace == NULL)
@@ -741,7 +767,7 @@ void DrawShadedMesh(void)
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glColor3f(0.0f, 0.0f, 0.0f);
-    for ( std::list<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); it++ )
+    for ( std::list<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); ++it )
     {
         Face * currFace = &(*it);
         if(currFace == NULL)
@@ -1129,7 +1155,7 @@ void OutputMeshFile(const char * filename)
     if(meshFile.is_open())
     {
         meshFile << "# " << newVertexList.GetCount() << " " << newFaceList.GetCount() <<"\n";
-        for ( std::list<Vertex>::iterator it = newVertexList.GetBeginIterator(); it != newVertexList.GetEndIterator(); it++ )
+        for ( std::list<Vertex>::iterator it = newVertexList.GetBeginIterator(); it != newVertexList.GetEndIterator(); ++it )
         {
             meshFile << "v ";
             Vertex *currVertex = &(*it);
@@ -1143,7 +1169,7 @@ void OutputMeshFile(const char * filename)
 
         }
 
-        for ( std::list<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); it++ )
+        for ( std::list<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); ++it )
         {
             Face *currFace = &(*it);
             WingedEdge *originalFaceEdge = currFace->GetEdge();
@@ -1179,6 +1205,83 @@ void OutputMeshFile(const char * filename)
     }
 }
 
+void rayIntersectionTest()
+{
+    std::list<Face>::iterator firstFace = newFaceList.GetBeginIterator();
+    float firstFaceCentre[COORDINATESIZE] = {0.0,0.0,0.0};
+    //float origin[COORDINATESIZE] = {0.0,0.0,0.0};
+    firstFace->GetCentre(firstFaceCentre);
+    glDisable(GL_LIGHTING);
+    
+    glBegin(GL_TRIANGLES);
+
+    
+    for ( std::list<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); ++it )
+    {
+        Face * currentFace = &(*it);
+        float currFaceCentre[COORDINATESIZE] = {0.0,0.0,0.0};
+        if(currentFace == NULL)
+        {
+            return;
+        }
+        currentFace->GetCentre(currFaceCentre);
+        Vector3 ray;
+        CreateVector(firstFaceCentre, currFaceCentre, ray);
+        float vertices[3][3];
+        currentFace->GetVertices(vertices);
+        float distance = 0.0;
+        if(CheckRayTriangleIntersection(vertices[0], vertices[1], vertices[2], currFaceCentre, ray, distance))
+        {
+             glColor3f(0.2f, 0.2f, 0.2f);
+        }
+        else
+        {
+            glColor3f(0.8f, 0.2f, 0.8f);
+        }
+        
+        WingedEdge *originalFaceEdge = currentFace->GetEdge();
+        //W_edge *firstIndexEdge = &EdgeList[0];
+        WingedEdge *currFaceEdge = originalFaceEdge;
+        
+        
+        //need to repeat first vertex coordinate so MESHITEM + 1
+        for( int j=0; j<MESHITEMSIZE; j++)
+        {
+            
+            if(currFaceEdge->GetRightFace() == currentFace)
+            {
+                //TODO modify how/when surface normals are created
+                
+                float coordinates[COORDINATESIZE] = {0,0,0};
+                currFaceEdge->GetStartVertex()->GetCoordinates(coordinates);
+                
+                float surfaceNormal[3] = {0,0,0};
+                currentFace->GetNormal(surfaceNormal);
+                
+                glNormal3fv(surfaceNormal);
+                glVertex3fv(coordinates);
+                currFaceEdge = currFaceEdge->GetRightPrev();
+            }
+            else
+            {
+                
+                float coordinates[COORDINATESIZE] = {0,0,0};
+                currFaceEdge->GetEndVertex()->GetCoordinates(coordinates);
+                
+                float surfaceNormal[3] = {0,0,0};
+                currentFace->GetNormal(surfaceNormal);
+                
+                glNormal3fv(surfaceNormal);
+                glVertex3fv(coordinates);
+                currFaceEdge = currFaceEdge->GetLeftPrev();
+            }
+        }
+    
+    }
+    glEnd();
+
+}
+
 //tests getSegmentationMap with a pyramid mesh to determine whether it clusters correctly
 //also Draws to screen
 void pyramidClusterDrawTest()
@@ -1196,20 +1299,22 @@ void pyramidClusterDrawTest()
         }
     }
     
-    FaceClusterList* clusterList = getSegmentationMap(&pairList,  &missList, &newFaceList, 2);
+    FaceClusterList* clusterList = getSegmentationMap(&pairList,  &missList, &newFaceList, 3);
     
     int clusterCount = 0;
+    glDisable(GL_LIGHTING);
+    
+    glBegin(GL_TRIANGLES);
     for ( std::list<FaceCluster>::iterator it = clusterList->GetBeginIterator(); it != clusterList->GetEndIterator(); ++it )
     {
         FaceCluster *currentCluster = &(*it);
         clusterCount++;
+
         for ( std::list<Face*>::iterator it2 = currentCluster->GetBeginIterator(); it2 != currentCluster->GetEndIterator(); ++it2 )
         {
             Face *currentFace = *it2;
             //glEnable(GL_POLYGON_OFFSET_FILL);
-            glDisable(GL_LIGHTING);
-        
-            glBegin(GL_TRIANGLES);
+
             
             int colours = 8;
             switch (clusterCount%colours)
@@ -1278,11 +1383,11 @@ void pyramidClusterDrawTest()
                 }
             }
 
-            glEnd();
+
             
         }
     }
-    
+    glEnd();
     if(clusterList != NULL)
     {
         delete clusterList;
@@ -1343,8 +1448,8 @@ void myGlutDisplay( void )
         switch (DISPLAYMODE)
         {
             case WIREFRAME:
-            
-                DrawWireframe();
+                rayIntersectionTest();
+                //DrawWireframe();
                 break;
             case FLATSHADED:
                 pyramidClusterDrawTest();

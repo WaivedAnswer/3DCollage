@@ -39,7 +39,7 @@ Face *FaceCluster::GetFace(int index)
         return NULL;
     }
     int faceCount = 0;
-    for (std::list<Face*>::iterator it = faceList.begin(); it != faceList.end(); it++)
+    for (std::list<Face*>::iterator it = faceList.begin(); it != faceList.end(); ++it)
     {
         if (faceCount == index)
         {

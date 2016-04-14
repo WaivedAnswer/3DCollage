@@ -29,7 +29,7 @@ FacePair* FacePairList::GetPair(int index)
         return NULL;
     }
     int pairCount = 0;
-    for (std::list<FacePair>::iterator it = pairList.begin(); it != pairList.end(); it++)
+    for (std::list<FacePair>::iterator it = pairList.begin(); it != pairList.end(); ++it)
     {
         if (pairCount == index)
         {

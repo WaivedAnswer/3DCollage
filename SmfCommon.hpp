@@ -37,4 +37,5 @@ void AddVectorToPoint(const float (&vec)[3], const float (&point)[3], float vect
 void VectorCross(const float (&vec1)[3], const float (&vec2)[3], float (&cross)[3]);
 void VectorCross(const float *vec1, const float *vec2, float (&cross)[3]);
 float VectorDot(const float (&vec1)[3], const float (&vec2)[3]);
+float VectorDot(const float *vec1, const float *vec2);
 #endif /* SmfCommon_hpp */

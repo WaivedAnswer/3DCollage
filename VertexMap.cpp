@@ -24,7 +24,7 @@ VertexMap::VertexMap()
 void VertexMap::UpdateVertexIndexes()
 {
     int updateCount = 0;
-    for (std::list<Vertex>::iterator it = vertexList.begin(); it != vertexList.end(); it++)
+    for (std::list<Vertex>::iterator it = vertexList.begin(); it != vertexList.end(); ++it)
     {
         it->SetIndex(updateCount);
         updateCount++;
@@ -50,7 +50,7 @@ Vertex *VertexMap::GetVertex(int index)
         return NULL;
     }
     int vertexCount = 0;
-    for (std::list<Vertex>::iterator it = vertexList.begin(); it != vertexList.end(); it++)
+    for (std::list<Vertex>::iterator it = vertexList.begin(); it != vertexList.end(); ++it)
     {
         if (vertexCount == index)
         {
@@ -64,7 +64,7 @@ Vertex *VertexMap::GetVertex(int index)
 //to be called after import
 void VertexMap::InitQuadrics()
 {
-    for (std::list<Vertex>::iterator it = vertexList.begin(); it != vertexList.end(); it++)
+    for (std::list<Vertex>::iterator it = vertexList.begin(); it != vertexList.end(); ++it)
     {
         it->InitQuadric();
     }
@@ -73,7 +73,7 @@ void VertexMap::InitQuadrics()
 //to be called after import
 void VertexMap::CalculateNormals()
 {
-    for (std::list<Vertex>::iterator it = vertexList.begin(); it != vertexList.end(); it++)
+    for (std::list<Vertex>::iterator it = vertexList.begin(); it != vertexList.end(); ++it)
     {
         it->CalculateVertexNormal();
     }
@@ -137,7 +137,7 @@ bool VertexMap::EraseVertex(int index)
         return false;
     }
     int vertexCount = 0;
-    for (std::list<Vertex>::iterator it = vertexList.begin(); it != vertexList.end(); it++)
+    for (std::list<Vertex>::iterator it = vertexList.begin(); it != vertexList.end(); ++it)
     {
         if (vertexCount == index)
         {
