@@ -18,7 +18,7 @@ FaceMap::FaceMap()
 void FaceMap::UpdateFaceIndexes()
 {
     int updateCount = 0;
-    for (std::list<Face>::iterator it = faceList.begin(); it != faceList.end(); it++)
+    for (std::list<Face>::iterator it = faceList.begin(); it != faceList.end(); ++it)
     {
         it->SetIndex(updateCount);
         updateCount++;
@@ -43,7 +43,7 @@ Face *FaceMap::GetFace(int index)
         return NULL;
     }
     int faceCount = 0;
-    for (std::list<Face>::iterator it = faceList.begin(); it != faceList.end(); it++)
+    for (std::list<Face>::iterator it = faceList.begin(); it != faceList.end(); ++it)
     {
         if (faceCount == index)
         {
@@ -77,7 +77,7 @@ Face *FaceMap::GetLastFace()
 //to be called after import
 void FaceMap::CalculateNormals()
 {
-    for (std::list<Face>::iterator it = faceList.begin(); it != faceList.end(); it++)
+    for (std::list<Face>::iterator it = faceList.begin(); it != faceList.end(); ++it)
     {
         it->CalculateNormal();
     }
@@ -123,7 +123,7 @@ bool FaceMap::EraseFace(int index)
         return false;
     }
     int faceCount = 0;
-    for (std::list<Face>::iterator it = faceList.begin(); it != faceList.end(); it++)
+    for (std::list<Face>::iterator it = faceList.begin(); it != faceList.end(); ++it)
     {
         if (faceCount == index)
         {

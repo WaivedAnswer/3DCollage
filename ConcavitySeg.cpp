@@ -70,19 +70,23 @@ FaceClusterList* getSegmentationMap(FacePairList *canSee, FacePairList *cannotSe
         centroids = new double[k * facen]();
         for (int i = 0; i < k; i++) {
             FaceCluster *faceC = segs->GetCluster(i);
-            if (faceC->GetCount() == 0) {
-                // dont bother trying to divide by zero
-                continue;
-            }
-            for (int j = 0; j < faceC->GetCount(); j++) {
-                // add face connectivity data to centroid
-                int faceInd = faceC->GetFace(j)->GetIndex();
-                for (int n = 0; n < facen; n++) {
-                    centroids[k*facen + n] += conMatrix[faceInd*facen + n];
+            if(faceC!= NULL)
+            {
+                if (faceC->GetCount() == 0) {
+                    // dont bother trying to divide by zero
+                    continue;
                 }
-            }
-            for (int n = 0; n < facen; n++) {
-                centroids[k*facen + n] /= faceC->GetCount();
+                for (int j = 0; j < faceC->GetCount(); j++) {
+                    // add face connectivity data to centroid
+                    int faceInd = faceC->GetFace(j)->GetIndex();
+                    for (int n = 0; n < facen; n++) {
+                        centroids[i*facen + n] += conMatrix[faceInd*facen + n];
+                    }
+                }
+                for (int n = 0; n < facen; n++) {
+                    centroids[i*facen + n] /= faceC->GetCount();
+                }
+
             }
         }
         for (int i = 0; i < k * facen; i++) {
