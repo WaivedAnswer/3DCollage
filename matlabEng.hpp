@@ -15,10 +15,11 @@
 
 void deleteFiles();
 void readSMF(std::string);
-void fclPCA(FaceClusterList);
+void fclPCA(FaceClusterList*);
 int matlabObjPCA(double[], double[], double[],int, std::string);
 void bestFit(int, double[], double[]);
 void comparePCA();
 void generateNewMeshFile();
+int test();
 
 #endif /* matlabEng_hpp */
