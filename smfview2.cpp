@@ -1766,7 +1766,7 @@ void VoxelSegment()
 {
     if(clusterList != NULL)
     {
-        delete[] clusterList;
+        delete clusterList;
         clusterList = NULL;
     }
     int k = 30;
@@ -1852,14 +1852,14 @@ void VoxelSegment()
         
         delete[] rayList;
     }
-    clusterList = getSegmentationMap(&pairList,  &missList, &newFaceList, 3);
+    clusterList = getSegmentationMap(&pairList,  &missList, &newFaceList, Segments);
 
 }
 void Segment()
 {
     if(clusterList != NULL)
     {
-        delete[] clusterList;
+        delete clusterList;
         clusterList = NULL;
     }
     int k = 30;
@@ -1940,7 +1940,7 @@ void Segment()
     }
     
     
-    clusterList = getSegmentationMap(&pairList,  &missList, &newFaceList, 3);
+    clusterList = getSegmentationMap(&pairList,  &missList, &newFaceList, Segments);
     
     
 }
@@ -2083,11 +2083,8 @@ int main(int argc, char * argv[]) {
     TRANSLATION = glui->add_translation("Translate", GLUI_TRANSLATION_XY, XY_TRANS);
     glui->add_separator();
     
-    GLUI_Panel * DecimatePanel = glui->add_panel("Decimate Panel");
-    DECIMATE = glui->add_button_to_panel(DecimatePanel, "Decimate", DECIMATEBUTTON, glui_cb);
-    GLUI_Spinner *N_spinner = glui->add_spinner_to_panel(DecimatePanel, "Collapse N", GLUI_SPINNER_INT, &NDecimate );
-    GLUI_Spinner *K_spinner = glui->add_spinner_to_panel(DecimatePanel, "Choose K", GLUI_SPINNER_INT, &KChoose );
-
+    GLUI_Panel * DecimatePanel = glui->add_panel("Segment Panel");
+    DECIMATE = glui->add_button_to_panel(DecimatePanel, "Segment", DECIMATEBUTTON, glui_cb);
     
     glui->add_separator();
     
