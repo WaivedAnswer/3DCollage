@@ -574,93 +574,6 @@ void RayIntersections()
     }
 }
 
-void VoxelRayIntersections()
-{
-    int k = 30;
-    FacePairList pairList;
-    FacePairList missList;
-    
-    for ( std::vector<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); ++it )
-    {
-        Face *firstFace = &(*it);
-        Vector3 *rayList = firstFace->MakeRays(k);
-        float firstFaceCentre[COORDINATESIZE] = {0.0,0.0,0.0};
-        firstFace->GetCentre(firstFaceCentre);
-        
-        for (int i = 0 ; i<k; i++)
-        {
-            std::vector<FacePair> intersectPairs;
-            std::vector<float> intersectDistances;
-            std::vector<FaceVoxel> voxelList;
-            gridList->GetVoxelsAlongRay(firstFaceCentre, rayList[i], voxelList);
-            for ( std::vector<FaceVoxel>::iterator it2 =voxelList.begin(); it2 != voxelList.end(); ++it2 )
-            {
-                std::vector<Face*> faceList = it2->GetFaceList();
-                for ( std::vector<Face*>::iterator it3 = faceList.begin(); it3 != faceList.end(); ++it3 )
-                {
-                    Face *secondFace = (*it3);
-                    if(firstFace == secondFace)
-                    {
-                        FacePair pair(firstFace, secondFace);
-                        pairList.AddPair(pair);
-                        continue;
-                    }
-                    float vertices[3][3];
-                    secondFace->GetVertices(vertices);
-                    
-                    float dist;
-                    if(CheckRayTriangleIntersection(vertices[0], vertices[1], vertices[2], firstFaceCentre, rayList[i], dist))
-                    {
-                        FacePair pair(firstFace, secondFace);
-                        intersectPairs.push_back(pair);
-                        intersectDistances.push_back(dist);
-                    }
-
-                }
-            }
-            int minIndex = -1;
-            int count = 0;
-            float minDistance = -1.0;
-            
-            for(std::vector<float>::iterator distit = intersectDistances.begin(); distit != intersectDistances.end(); ++distit)
-            {
-                if(minDistance == -1.0)
-                {
-                    minDistance = *distit;
-                    minIndex = count;
-                }
-                else if(*distit < minDistance)
-                {
-                    minDistance = *distit;
-                    minIndex = count;
-                }
-                count++;
-            }
-            count = 0;
-            if(minIndex!= - 1)
-            {
-                for(std::vector<FacePair>::iterator pairit = intersectPairs.begin(); pairit != intersectPairs.end(); ++pairit)
-                {
-                    if(count == minIndex)
-                    {
-                        pairList.AddPair(*pairit);
-                    }
-                    else
-                    {
-                        missList.AddPair(*pairit);
-                    }
-                    count++;
-                }
-            }
-            
-            
-        }
-        
-        delete[] rayList;
-    }
-    
-    std::cout<< "test";
-}
 void DrawWireframe(void)
 {
     //glEnable(GL_LIGHTING);
@@ -1148,8 +1061,8 @@ void glui_cb(int control)
             }*/
             //RayIntersections();
             //VoxelRayIntersections();
-            Segment();
-            //VoxelSegment();
+            //Segment();
+            VoxelSegment();
 
             break;
         case QUITBUTTON:
@@ -1881,8 +1794,8 @@ void VoxelSegment()
                     Face *secondFace = (*it3);
                     if(firstFace == secondFace)
                     {
-                        FacePair pair(firstFace, secondFace);
-                        pairList.AddPair(pair);
+                        //FacePair pair(firstFace, secondFace);
+                        //pairList.AddPair(pair);
                         continue;
                     }
                     float vertices[3][3];
@@ -1904,16 +1817,17 @@ void VoxelSegment()
             
             for(std::vector<float>::iterator distit = intersectDistances.begin(); distit != intersectDistances.end(); ++distit)
             {
-                if(minDistance == -1.0)
+                if(minDistance == -1.0 && *distit>0)
                 {
                     minDistance = *distit;
                     minIndex = count;
                 }
-                else if(*distit < minDistance)
+                else if(*distit < minDistance && *distit>0)
                 {
                     minDistance = *distit;
                     minIndex = count;
                 }
+                
                 count++;
             }
             count = 0;
@@ -1990,12 +1904,12 @@ void Segment()
             
             for(std::vector<float>::iterator distit = intersectDistances.begin(); distit != intersectDistances.end(); ++distit)
             {
-                if(minDistance == -1.0)
+                if(minDistance == -1.0 && *distit>0)
                 {
                     minDistance = *distit;
                     minIndex = count;
                 }
-                else if(*distit < minDistance)
+                else if(*distit < minDistance && *distit>0)
                 {
                     minDistance = *distit;
                     minIndex = count;
