@@ -16,6 +16,7 @@ class FacePair
 {
 public:
     FacePair();
+    FacePair(Face *f1, Face *f2);
     void MakePair(Face *f1, Face *f2);
     Face *GetFace1();
     Face *GetFace2();

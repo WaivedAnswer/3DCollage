@@ -12,6 +12,11 @@ VertexMap::VertexMap()
 {
     count = 0;
     dirty = false;
+    for(int i = 0; i < COORDINATESIZE; i++)
+    {
+        maxDimensions[i] = 0.0;
+        minDimensions[i] = 0.0;
+    }
 }
 
 
@@ -19,7 +24,7 @@ VertexMap::VertexMap()
 void VertexMap::UpdateVertexIndexes()
 {
     int updateCount = 0;
-    for (std::list<Vertex>::iterator it = vertexList.begin(); it != vertexList.end(); it++)
+    for (std::list<Vertex>::iterator it = vertexList.begin(); it != vertexList.end(); ++it)
     {
         it->SetIndex(updateCount);
         updateCount++;
@@ -45,7 +50,7 @@ Vertex *VertexMap::GetVertex(int index)
         return NULL;
     }
     int vertexCount = 0;
-    for (std::list<Vertex>::iterator it = vertexList.begin(); it != vertexList.end(); it++)
+    for (std::list<Vertex>::iterator it = vertexList.begin(); it != vertexList.end(); ++it)
     {
         if (vertexCount == index)
         {
@@ -59,7 +64,7 @@ Vertex *VertexMap::GetVertex(int index)
 //to be called after import
 void VertexMap::InitQuadrics()
 {
-    for (std::list<Vertex>::iterator it = vertexList.begin(); it != vertexList.end(); it++)
+    for (std::list<Vertex>::iterator it = vertexList.begin(); it != vertexList.end(); ++it)
     {
         it->InitQuadric();
     }
@@ -68,9 +73,18 @@ void VertexMap::InitQuadrics()
 //to be called after import
 void VertexMap::CalculateNormals()
 {
-    for (std::list<Vertex>::iterator it = vertexList.begin(); it != vertexList.end(); it++)
+    for (std::list<Vertex>::iterator it = vertexList.begin(); it != vertexList.end(); ++it)
     {
         it->CalculateVertexNormal();
+    }
+}
+
+void VertexMap::GetMaxAndMinDimensions(float (&max)[COORDINATESIZE], float (&min)[COORDINATESIZE])
+{
+    for(int i = 0; i<COORDINATESIZE; i++)
+    {
+        max[i] = maxDimensions[i];
+        min[i] = minDimensions[i];
     }
 }
 
@@ -79,6 +93,20 @@ void VertexMap::AddVertex(Vertex vertex)
 {
     vertex.SetIndex(count);
     vertexList.push_back(vertex);
+    float coordinates[COORDINATESIZE] = {0.0,0.0,0.0};
+    vertex.GetCoordinates(coordinates);
+    for (int i =0; i <COORDINATESIZE; i++)
+    {
+        if(coordinates[i] > maxDimensions[i])
+        {
+            maxDimensions[i] = coordinates[i];
+        }
+        if(coordinates[i] < minDimensions[i])
+        {
+            minDimensions[i] = coordinates[i];
+        }
+    }
+    
     count++;
 }
 
@@ -109,7 +137,7 @@ bool VertexMap::EraseVertex(int index)
         return false;
     }
     int vertexCount = 0;
-    for (std::list<Vertex>::iterator it = vertexList.begin(); it != vertexList.end(); it++)
+    for (std::list<Vertex>::iterator it = vertexList.begin(); it != vertexList.end(); ++it)
     {
         if (vertexCount == index)
         {
