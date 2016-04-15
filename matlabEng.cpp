@@ -147,7 +147,7 @@ int matlabObjPCA(double M_x[], double M_y[], double M_z[],int vsize, string file
         engEvalString(ep, "cenZ = sum(V(:,3))/numPoint;");
         engEvalString(ep, "fileID = fopen('clusterPCA.txt','a+t','n');");
         engEvalString(ep, "formatSpec = '\\nC %s %d %d %d %s %s %s %s %s %s %s %s %s';");
-        engEvalString(ep, "fprintf(fileID,formatSpec,filename, cenX, cenY, cenz, num2str(pc(1,1)), num2str(pc(1,2)),num2str(pc(1,3)),num2str(pc(2,1)),num2str(pc(2,2)),num2str(pc(2,3)),num2str(pc(3,1)),num2str(pc(3,2)),num2str(pc(3,3)));");
+        engEvalString(ep, "fprintf(fileID,formatSpec,filename, cenX, cenY, cenZ, num2str(pc(1,1)), num2str(pc(1,2)),num2str(pc(1,3)),num2str(pc(2,1)),num2str(pc(2,2)),num2str(pc(2,3)),num2str(pc(3,1)),num2str(pc(3,2)),num2str(pc(3,3)));");
         engEvalString(ep, "fclose(fileID);");
     }else{
         engEvalString(ep, "fileID = fopen('objPCA.txt','a+t','n');");
@@ -155,10 +155,6 @@ int matlabObjPCA(double M_x[], double M_y[], double M_z[],int vsize, string file
         engEvalString(ep, "fprintf(fileID,formatSpec,filename, num2str(pc(1,1)), num2str(pc(1,2)),num2str(pc(1,3)),num2str(pc(2,1)),num2str(pc(2,2)),num2str(pc(2,3)),num2str(pc(3,1)),num2str(pc(3,2)),num2str(pc(3,3)));");
         engEvalString(ep, "fclose(fileID);");
     }
-    
-    
-    engEvalString(ep, "fprintf(fileID,formatSpec,filename, num2str(pc(1,1)), num2str(pc(1,2)),num2str(pc(1,3)),num2str(pc(2,1)),num2str(pc(2,2)),num2str(pc(2,3)),num2str(pc(3,1)),num2str(pc(3,2)),num2str(pc(3,3)));");
-    engEvalString(ep, "fclose(fileID);");
     
     
     //free variables
@@ -179,12 +175,15 @@ void fclPCA(FaceClusterList *fcl)
     for (int i = 0; i < fcl->GetCount(); i++){
         FaceCluster *fci = fcl->GetCluster(i);
         filename = i; // filename = cluster index
+        stringstream ss;
+        ss << i;
+        filename = ss.str();
+        
         vsize = fci->GetCount()*3;
         double F_x[vsize] , F_y[vsize] ,F_z[vsize];
         int k=0;
         for (int j = 0; j < fci->GetCount(); j++){
             Face *face = fci->GetFace(j);
-            for ( int h = 0; h < COORDINATESIZE; h ++){
                 float ver[3][3];
                 face->GetVertices(ver);
                 //retrieve all the vertice and pass them to PCA function
@@ -194,13 +193,14 @@ void fclPCA(FaceClusterList *fcl)
                     F_z[k] = ver[v][2];
                     k++;
                 }
-            }
+            
         }
         matlabObjPCA(F_x, F_y, F_z, vsize, filename, 1);
     }
 
     
 }
+
 
 void bestFit(int index, double tPCA[], double tcen[]){
     //get index, get pca[]
@@ -295,6 +295,7 @@ void comparePCA(){
     
 }
 
+
 void generateNewMeshFile()
 {
     string filename = "match.txt";
@@ -307,7 +308,7 @@ void generateNewMeshFile()
     //read in all v and f from objectfile
     //tranlate v by center
     //Append to NewMesh.txt file
-
+    cout << "gennew" <<endl;
     
     if (inFile.is_open())
     {
@@ -323,8 +324,10 @@ void generateNewMeshFile()
                 ifstream inMeshFile(tObjfilename.c_str(),ios::in);
                 if ( inMeshFile.is_open()){
                         int count=0;
+                    
                         ofstream outfile;
-                        outfile.open("newMesh.smf", std::ios_base::app);
+                        outfile.open("newMesh.txt", std::ios_base::app);
+                    
                         //Get first line for # n m
                         int a,b;
                         string token0, token1, token2, token3;
@@ -338,11 +341,13 @@ void generateNewMeshFile()
                                 //Get vertices information and translate to originate at cluster center
                                 inFile >> token1;
                                 curM[0] = atof(token1.c_str()) + x;
+                                cout << curM[0];
                                 inFile >> token2;
-                                curM[1] = atof(token2.c_str()) + y ;
+                                curM[1] = atof(token2.c_str()) + y;
                                 inFile >> token3;
                                 curM[2] = atof(token3.c_str()) + z;
                                 outfile <<"\nv " <<curM[0] << " " <<curM[1] << " "<<curM[2];
+                                cout << "writine" << endl;
                                 count++;
                             }
                             if (token0 == "f"){
@@ -398,6 +403,8 @@ int test()
         }
         matlabObjPCA(M_x,M_y,M_z,vnum, filename, 2);
     }
+    comparePCA();
+    generateNewMeshFile();
     
     
     return 0;
