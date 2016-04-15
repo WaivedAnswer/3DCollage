@@ -10,8 +10,8 @@
 #include <vector>
 #include <list>
 #include <cmath>
-#include <GLUI/glui.h>
-#include <GLUT/glut.h>
+#include <GL/glui.h>
+#include <GL/glut.h>
 #include "Vertex.hpp"
 #include "Face.hpp"
 #include "WingedEdge.hpp"
@@ -30,13 +30,14 @@
 
 
 enum DisplayTypes {WIREFRAME, FLATSHADED, SMOOTHSHADED, SHADEDMESH};
-enum ButtonValues {OPENBUTTON, SAVEBUTTON, DECIMATEBUTTON, QUITBUTTON};
+enum ButtonValues {OPENBUTTON, SAVEBUTTON, DECIMATEBUTTON, QUITBUTTON, COLLAGEBUTTON};
 
 /** These are the live variables passed into GLUI ***/
 int DISPLAYMODE = WIREFRAME;
 bool DODRAW = false;
 int NDecimate = 0;
 int KChoose = 0;
+int Segments = 1;
 int MAIN_WINDOW;
 float ROTATION_MATRIX[16];
 float Z_TRANS = 0;
@@ -954,6 +955,7 @@ void SetDisplay(int mode)
     glutPostRedisplay();
 }
 void ReadMeshFile(const char* filename);
+void ReadSTLMeshFile(const char* filename);
 void OutputMeshFile(const char* filename);
 
 void glui_cb(int control)
@@ -969,6 +971,7 @@ void glui_cb(int control)
     switch (control)
     {
         case OPENBUTTON:
+            //ReadSTLMeshFile(&openname[0]);
             ReadMeshFile(&openname[0]);
             break;
         case SAVEBUTTON:
@@ -989,6 +992,9 @@ void glui_cb(int control)
 	    CleanupLists();
             exit(EXIT_SUCCESS);
             break;
+        case COLLAGEBUTTON:
+            // call the PCA stuff
+            break;
     }
 }
 
@@ -1007,6 +1013,221 @@ void GetListSizes(std::string line)
     edgeHelperListLength = totalVertexListLength;*/
 
 }
+
+
+void ReadSTLMeshFile(const char * filename)
+{
+    CleanupLists();
+    if(filename == NULL)
+    {
+	return;
+    }
+
+    std::string line;
+    
+    std::ifstream meshFileInit (filename);
+    
+    if(meshFileInit.is_open())
+    {
+        char * item = NULL;
+        bool ListsInitialized = false;
+        int count = 0;
+        while (getline(meshFileInit, line))
+        {
+            if (line.length() > 0) {
+                item = strtok(&line[0], " ");
+                if (strcmp(item, "vertex") == 0) {
+                    count++;
+                }
+            }
+        }
+        meshFileInit.close();
+        std::ifstream meshFile (filename);
+        //first Line
+        totalVertexListLength = count;
+        totalFaceListLength = count / 3;
+        
+        EdgeMapList = new EdgeMap(totalVertexListLength, &newVertexList, &newFaceList);
+        if( EdgeMapList == NULL)
+        {
+            std::cerr<< "Couldn't allocate edge map memory." << "\n";
+            delete EdgeMapList;
+            meshFile.close();
+            return;
+        }
+        
+        ListsInitialized = true;
+        
+        int ofThree = -1;
+        while (getline(meshFile, line))
+        {
+            if (line.length() > 0)
+            {
+                item = strtok(&line[0], " ");
+                if (strcmp(item, "vertex") == 0) {
+                    std::cout << item << std::endl;
+                    
+                    if(item == NULL)
+                    {
+                        meshFile.close();
+                        return;//some sort of length error missing
+                    }
+                    
+                    Vertex newVertex;
+                    float coordinates[3] = {0,0,0};
+                    for (int i = 0; i < COORDINATESIZE; i++)
+                    {
+                        
+                        item = strtok(NULL, " ");
+                        if (item == NULL)
+                        {
+                            meshFile.close();
+                            return; //some sort of length error missing
+                        }
+                        coordinates[i] = std::atof(item);
+                        
+                        //VertexList[vertexListLength]
+                        //newVertex.coordinates[i] = std::stof(item);
+                        //VertexList.push_back(newVertex);
+                    }
+                    newVertex.SetCoordinates(coordinates);
+                    newVertexList.AddVertex(newVertex);
+                    //vertexListLength++;
+                    ofThree++;
+                }
+            }
+            
+            std::cout << ofThree << std::endl;
+            if (ofThree % 3 == 2 && ofThree > 0)
+            {
+                int indexes[3] = { ofThree - 2, ofThree - 1, ofThree - 0 };
+
+                //will increment edgelist length after to create consistency with index number
+                // instead of the harder to follow +1 -1 0 + 2 -2
+                //need to fix later doubling efficiency issues
+                //1st edge created by face list item
+                //each face item ends up creating 3 edges
+                //will however have double the edges each with half the info..
+                //limitation might be to triangles..
+               
+                //checks if edge exists, if not it creates them. These will be passed to edgemap
+                WingedEdge * edges[3];
+                
+                //checks if any edge in the face set already exists
+                //if so changes index to that of existing edge
+                for( int i = 0; i<MESHITEMSIZE; i++)
+                {
+                    int startVIndex = indexes[(MESHITEMSIZE - i + 1)%MESHITEMSIZE];
+                    int endVIndex = indexes[(MESHITEMSIZE-i)%MESHITEMSIZE];
+                    //edgeIndexes[i] = CheckEdgeListForVertexIndexes(startVIndex, endVIndex);
+                    edges[i] = EdgeMapList->GetEdge(startVIndex, endVIndex);
+                    if(edges[i] == NULL)
+                    {
+                        edges[i] = new WingedEdge;
+                    }
+                }
+                
+                //set face edge pointer to first edge in face, adds face to list
+                Face newFace;
+                newFace.SetEdge(edges[0]);
+                newFaceList.AddFace(newFace);
+                
+                
+                for( int i = 0; i<MESHITEMSIZE; i++)
+                {
+                    int startIndex = indexes[(MESHITEMSIZE - i + 1)%MESHITEMSIZE];
+                    int endIndex = indexes[(MESHITEMSIZE-i)%MESHITEMSIZE];
+                    //was originally debating creating local face and pushing back to list after creating
+                    //but that messed up pointers, so I'll add to facelist
+                    //and edit through the pointer to the last element in FaceList
+                    //and switched back
+                    //newFaceList.AddFace();
+                    //Face *lastFace = newFaceList.GetLastFace();
+                    
+                    //std::cout << i <<" index\n";
+                    
+                    //std::cout << skippedindexes <<" indexes skipped \n";
+                    //std::cout << changedIndexCount <<" indexes changed. \n";
+
+                    //default values
+                    //default values when no reassignment due to duplicate edges
+                    WingedEdge *right_next = edges[mod(i+1, MESHITEMSIZE)];
+                    //std::cout << mod(i-1, MESHITEMSIZE);
+                    WingedEdge *right_prev = edges[mod(i-1, MESHITEMSIZE)];
+                    int reverseIndex = indexes[(MESHITEMSIZE-i)%MESHITEMSIZE];
+                    //if its new wedge
+                    if(edges[i]->GetRightPrev() == NULL &&
+                       edges[i]->GetRightNext() == NULL &&
+                       edges[i]->GetRightFace() == NULL)
+                    {
+                        
+                        //lastFace->edge = edges[i];
+                        //sets right face to last face
+                        edges[i]->SetRight(newFaceList.GetLastFace());
+                        edges[i]->SetRightNext(right_next);
+                        edges[i]->SetRightPrev(right_prev);
+                        
+                        //as facelist is listed as counterclockwise
+                        //might be off sometimes as duplicate edges
+                        //not even sure what these are mapping to
+                        
+                        //TODO double-check this one likely off
+                        if (newVertexList.GetVertex(reverseIndex)->GetEdge() == NULL)
+                        {
+                            newVertexList.GetVertex(reverseIndex)->SetEdge(edges[i]);
+                        }
+                        edges[i]->SetStartIndex(startIndex);
+                        edges[i]->SetEndIndex(endIndex);
+                        edges[i]->SetStartVertex(newVertexList.GetVertex(startIndex));
+                        
+                        edges[i]->SetEndVertex(newVertexList.GetVertex(endIndex));
+                        
+                        EdgeMapList->AddEdge(edges[i]);
+                    }
+                    else //edge has already been created, don't need to do anything with edge helpers right side or vertexes
+                    {
+                        //this might be off in some cases
+                        //sets left face to last face
+                        edges[i]->SetLeft(newFaceList.GetLastFace());
+                        //TODO look into this
+                        edges[i]->SetLeftNext(right_next);
+                        edges[i]->SetLeftPrev(right_prev);
+                        
+                        //as facelist is listed as counterclockwise
+                        //might be off sometimes as duplicate edges
+                        if (newVertexList.GetVertex(reverseIndex)->GetEdge() == NULL)
+                        {
+                            newVertexList.GetVertex(reverseIndex)->SetEdge(edges[i]);
+                        }
+                    }
+                }
+                //newFaceList.GetLastFace()->CalculateNormal();
+                //faceListLength++;
+            }
+        }
+        meshFile.close();
+        //have to call face calculate first
+        float maxDimensions[COORDINATESIZE] = {0.0,0.0,0.0};
+        float minDimensions[COORDINATESIZE] = {0.0,0.0,0.0};
+        newVertexList.GetMaxAndMinDimensions(maxDimensions, minDimensions);
+        
+        
+        gridList = new VoxelGrid(maxDimensions, minDimensions, 10);
+        std::cout << "closing" << std::endl;
+        //gridList->InsertFaces(newFaceList);
+        std::cout << "closing" << std::endl;
+        newFaceList.CalculateNormals();
+        newVertexList.CalculateNormals();
+        newVertexList.InitQuadrics();
+        //EdgeMapList->ReHashEdges();
+        DODRAW = true;
+    }
+    else
+    {
+        std::cout << "Couldn't open " << filename << "\n";
+    }
+}
+
 
 void ReadMeshFile(const char * filename)
 {
@@ -1030,24 +1251,6 @@ void ReadMeshFile(const char * filename)
             if(!ListsInitialized && line[0] == '#')
             {
                 GetListSizes(line);
-                //TODO cleanup/clear vertex/face/edgeLists
-                /*VertexList = new Vertex[totalVertexListLength];
-                if( VertexList == NULL)
-                {
-                    std::cerr<< "Couldn't allocate vertex memory." << "\n";
-                    delete VertexList;
-                    meshFile.close();
-                    return;
-                }*/
-                
-                /*FaceList = new Face[totalFaceListLength];
-                if( FaceList == NULL)
-                {
-                    std::cerr<< "Couldn't allocate face memory." << "\n";
-                    delete FaceList;
-                    meshFile.close();
-                    return;
-                }*/
                 
                 EdgeMapList = new EdgeMap(totalVertexListLength, &newVertexList, &newFaceList);
                 if( EdgeMapList == NULL)
@@ -1386,7 +1589,7 @@ void DrawClusterList()
     {
         return;
     }
-    //fclPCA(clusterList);
+    
     
     int clusterCount = 0;
     glDisable(GL_LIGHTING);
@@ -1701,8 +1904,9 @@ int main(int argc, char * argv[]) {
     
     GLUI_Panel * DecimatePanel = glui->add_panel("Decimate Panel");
     DECIMATE = glui->add_button_to_panel(DecimatePanel, "Decimate", DECIMATEBUTTON, glui_cb);
-    GLUI_Spinner *N_spinner = glui->add_spinner( "Collapse N", GLUI_SPINNER_INT, &NDecimate );
-    GLUI_Spinner *K_spinner = glui->add_spinner( "Choose K", GLUI_SPINNER_INT, &KChoose );
+    GLUI_Spinner *N_spinner = glui->add_spinner_to_panel(DecimatePanel, "Collapse N", GLUI_SPINNER_INT, &NDecimate );
+    GLUI_Spinner *K_spinner = glui->add_spinner_to_panel(DecimatePanel, "Choose K", GLUI_SPINNER_INT, &KChoose );
+
     
     glui->add_separator();
     
@@ -1714,6 +1918,13 @@ int main(int argc, char * argv[]) {
     //SAVE = glui->add_button_to_panel(SavePanel, "Save", SAVEBUTTON, glui_cb);
     SAVETEXT = glui->add_edittext_to_panel(SavePanel, "Filename", GLUI_EDITTEXT_TEXT, SAVEFILENAME, SAVEBUTTON, glui_cb);
     
+    glui->add_separator();
+
+    GLUI_Panel * CollagePanel = glui->add_panel("Collage Panel");
+    GLUI_EditText *SegmentSpinner = glui->add_edittext_to_panel(CollagePanel, "Number of Segments", GLUI_EDITTEXT_INT, &Segments );
+    SegmentSpinner->set_int_limits(1, 8);
+    GLUI_Button *CollagifyButton = glui->add_button_to_panel(CollagePanel, "Collagify", COLLAGEBUTTON, glui_cb);
+
     
     glui->add_separator();
     QUIT = glui->add_button("Quit", QUITBUTTON, glui_cb);
