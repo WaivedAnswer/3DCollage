@@ -10,8 +10,8 @@
 #include <vector>
 #include <list>
 #include <cmath>
-#include <GL/glui.h>
-#include <GL/glut.h>
+#include <GLUI/glui.h>
+#include <GLUT/glut.h>
 #include "Vertex.hpp"
 #include "Face.hpp"
 #include "WingedEdge.hpp"
@@ -29,7 +29,7 @@
 #include "matlabEng.hpp"
 
 
-enum DisplayTypes {WIREFRAME, FLATSHADED, SMOOTHSHADED, SHADEDMESH};
+enum DisplayTypes {WIREFRAME, WIREFRAMEWITHRAYS, SEGMENTED, COLLAGED};
 enum ButtonValues {OPENBUTTON, SAVEBUTTON, DECIMATEBUTTON, QUITBUTTON, COLLAGEBUTTON};
 
 /** These are the live variables passed into GLUI ***/
@@ -71,6 +71,7 @@ int totalEdgeListLength = 0;
 
 FaceClusterList* clusterList = NULL;
 void Segment();
+void VoxelSegment();
 
 /*struct W_edge
 {
@@ -242,7 +243,10 @@ bool CheckRayTriangleIntersection(Point &v1, Point &v2, Point &v3, Point &origin
     }
     
     t = VectorDot(e2, Q) * inv_det;
-    
+    /*if(t<0)
+    {
+        return false;
+    }*/
     return true;
 
 }
@@ -428,13 +432,32 @@ void DrawSmoothShaded(void)
     
 }
 
+void DrawVoxels(const Point &origin, const Vector3 &ray)
+{
+    glColor3f(0.0f, 1.0f, 1.0f);
+    std::vector<FaceVoxel> voxelList;
+    gridList->GetVoxelsAlongRay(origin, ray, voxelList);
+    glBegin(GL_LINE_STRIP);
+    for(std::vector<FaceVoxel>::iterator it = voxelList.begin(); it!= voxelList.end(); ++it)
+    {
+        float coord[COORDINATESIZE] = {0.0,0.0,0.0};
+        it->GetCoordinates(coord);
+        glVertex3fv(coord);
+    }
+    glEnd();
+}
+
 void DrawRays(void)
 {
     
     glColor3f(1.0f, 0.0f, 1.0f);
     std::list<Face>::iterator firstFace = newFaceList.GetBeginIterator();
-    firstFace++;
-    firstFace++;
+    /*int x = 3;
+    for(int i = 0; i<x ; i++)
+    {
+        firstFace++;
+    }*/
+    
     float firstFaceCentre[COORDINATESIZE] = {0.0,0.0,0.0};
     //float origin[COORDINATESIZE] = {0.0,0.0,0.0};
     firstFace->GetCentre(firstFaceCentre);
@@ -463,7 +486,10 @@ void DrawRays(void)
     glVertex3fv(firstFaceNormal);
     
     glEnd();
-    
+    /*for (int i =0; i<k; i++)
+    {
+        DrawVoxels(firstFaceCentre,rayList[i]);
+    }*/
     delete[] rayList;
 
 }
@@ -548,8 +574,142 @@ void RayIntersections()
     }
 }
 
+void VoxelRayIntersections()
+{
+    int k = 30;
+    FacePairList pairList;
+    FacePairList missList;
+    
+    for ( std::list<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); ++it )
+    {
+        Face *firstFace = &(*it);
+        Vector3 *rayList = firstFace->MakeRays(k);
+        float firstFaceCentre[COORDINATESIZE] = {0.0,0.0,0.0};
+        firstFace->GetCentre(firstFaceCentre);
+        
+        for (int i = 0 ; i<k; i++)
+        {
+            std::vector<FacePair> intersectPairs;
+            std::vector<float> intersectDistances;
+            std::vector<FaceVoxel> voxelList;
+            gridList->GetVoxelsAlongRay(firstFaceCentre, rayList[i], voxelList);
+            for ( std::vector<FaceVoxel>::iterator it2 =voxelList.begin(); it2 != voxelList.end(); ++it2 )
+            {
+                std::vector<Face*> faceList = it2->GetFaceList();
+                for ( std::vector<Face*>::iterator it3 = faceList.begin(); it3 != faceList.end(); ++it3 )
+                {
+                    Face *secondFace = (*it3);
+                    if(firstFace == secondFace)
+                    {
+                        FacePair pair(firstFace, secondFace);
+                        pairList.AddPair(pair);
+                        continue;
+                    }
+                    float vertices[3][3];
+                    secondFace->GetVertices(vertices);
+                    
+                    float dist;
+                    if(CheckRayTriangleIntersection(vertices[0], vertices[1], vertices[2], firstFaceCentre, rayList[i], dist))
+                    {
+                        FacePair pair(firstFace, secondFace);
+                        intersectPairs.push_back(pair);
+                        intersectDistances.push_back(dist);
+                    }
 
+                }
+            }
+            int minIndex = -1;
+            int count = 0;
+            float minDistance = -1.0;
+            
+            for(std::vector<float>::iterator distit = intersectDistances.begin(); distit != intersectDistances.end(); ++distit)
+            {
+                if(minDistance == -1.0)
+                {
+                    minDistance = *distit;
+                    minIndex = count;
+                }
+                else if(*distit < minDistance)
+                {
+                    minDistance = *distit;
+                    minIndex = count;
+                }
+                count++;
+            }
+            count = 0;
+            if(minIndex!= - 1)
+            {
+                for(std::vector<FacePair>::iterator pairit = intersectPairs.begin(); pairit != intersectPairs.end(); ++pairit)
+                {
+                    if(count == minIndex)
+                    {
+                        pairList.AddPair(*pairit);
+                    }
+                    else
+                    {
+                        missList.AddPair(*pairit);
+                    }
+                    count++;
+                }
+            }
+            
+            
+        }
+        
+        delete[] rayList;
+    }
+    
+    std::cout<< "test";
+}
 void DrawWireframe(void)
+{
+    //glEnable(GL_LIGHTING);
+    glColor3f(0.0f, 0.0f, 0.0f);
+    for ( std::list<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); ++it )
+    {
+        Face * currFace = &(*it);
+        if(currFace == NULL)
+        {
+            return;
+        }
+        WingedEdge *originalFaceEdge = currFace->GetEdge();
+        //W_edge *firstIndexEdge = &EdgeList[0];
+        WingedEdge *currFaceEdge = originalFaceEdge;
+        
+        glBegin(GL_LINE_STRIP);
+        //need to repeat first vertex coordinate so MESHITEM + 1
+        for( int j=0; j<MESHITEMSIZE + 1; j++)
+        {
+            
+            if(currFaceEdge->GetRightFace() == currFace)
+            {
+                //as the edges have specific orderings if we use right prev must use starting index
+                //std::cout << " " << currFaceEdge->vertexIndexes[0] + 1;
+                
+                float coordinates[COORDINATESIZE] = {0,0,0};
+                currFaceEdge->GetStartVertex()->GetCoordinates(coordinates);
+                
+                glVertex3fv(coordinates);
+                currFaceEdge = currFaceEdge->GetRightPrev();
+            }
+            else
+            {
+                //if using left prev need to use end vertex index
+                //std::cout << " " << currFaceEdge->vertexIndexes[1] + 1;
+                
+                float coordinates[COORDINATESIZE] = {0,0,0};
+                currFaceEdge->GetEndVertex()->GetCoordinates(coordinates);
+                
+                glVertex3fv(coordinates);
+                currFaceEdge = currFaceEdge->GetLeftPrev();
+            }
+        }
+        glEnd();
+    }
+}
+
+
+void DrawWireframeWithRays(void)
 {
     //glEnable(GL_LIGHTING);
     glColor3f(0.0f, 0.0f, 0.0f);
@@ -595,7 +755,7 @@ void DrawWireframe(void)
         glEnd();
     }
     
-    //DrawRays();
+    DrawRays();
 }
 
 void DrawVoxelShaded(void)
@@ -934,15 +1094,16 @@ void SetDisplay(int mode)
             glShadeModel(GL_FLAT);
             //glDisable(GL_LIGHTING);
             break;
-        case FLATSHADED:
+        case WIREFRAMEWITHRAYS:
             glShadeModel(GL_FLAT);
             //glEnable(GL_LIGHTING);
             break;
-        case SMOOTHSHADED:
-            glShadeModel(GL_SMOOTH);
+        case SEGMENTED:
+            glShadeModel(GL_FLAT);
+            //glShadeModel(GL_SMOOTH);
             //glEnable(GL_LIGHTING);
             break;
-        case SHADEDMESH:
+        case COLLAGED:
             glShadeModel(GL_FLAT);
             //glEnable(GL_LIGHTING);
             break;
@@ -986,7 +1147,10 @@ void glui_cb(int control)
                 DODRAW = true;
             }*/
             //RayIntersections();
+            //VoxelRayIntersections();
             Segment();
+            //VoxelSegment();
+
             break;
         case QUITBUTTON:
 	    CleanupLists();
@@ -1212,10 +1376,10 @@ void ReadSTLMeshFile(const char * filename)
         newVertexList.GetMaxAndMinDimensions(maxDimensions, minDimensions);
         
         
-        gridList = new VoxelGrid(maxDimensions, minDimensions, 10);
-        std::cout << "closing" << std::endl;
-        //gridList->InsertFaces(newFaceList);
-        std::cout << "closing" << std::endl;
+        gridList = new VoxelGrid(maxDimensions, minDimensions, 5);
+        //std::cout << "closing" << std::endl;
+        gridList->InsertFaces(newFaceList);
+        //std::cout << "closing" << std::endl;
         newFaceList.CalculateNormals();
         newVertexList.CalculateNormals();
         newVertexList.InitQuadrics();
@@ -1429,8 +1593,8 @@ void ReadMeshFile(const char * filename)
         newVertexList.GetMaxAndMinDimensions(maxDimensions, minDimensions);
         
         
-        //gridList = new VoxelGrid(maxDimensions, minDimensions, 10);
-        //gridList->InsertFaces(newFaceList);
+        gridList = new VoxelGrid(maxDimensions, minDimensions, 10);
+        gridList->InsertFaces(newFaceList);
         newFaceList.CalculateNormals();
         newVertexList.CalculateNormals();
         newVertexList.InitQuadrics();
@@ -1683,8 +1847,106 @@ void DrawClusterList()
 
 //tests getSegmentationMap with a pyramid mesh to determine whether it clusters correctly
 //also Draws to screen
+
+void VoxelSegment()
+{
+    if(clusterList != NULL)
+    {
+        delete[] clusterList;
+        clusterList = NULL;
+    }
+    int k = 30;
+    FacePairList pairList;
+    FacePairList missList;
+    
+    for ( std::list<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); ++it )
+    {
+        Face *firstFace = &(*it);
+        Vector3 *rayList = firstFace->MakeRays(k);
+        float firstFaceCentre[COORDINATESIZE] = {0.0,0.0,0.0};
+        firstFace->GetCentre(firstFaceCentre);
+        
+        for (int i = 0 ; i<k; i++)
+        {
+            std::vector<FacePair> intersectPairs;
+            std::vector<float> intersectDistances;
+            std::vector<FaceVoxel> voxelList;
+            gridList->GetVoxelsAlongRay(firstFaceCentre, rayList[i], voxelList);
+            for ( std::vector<FaceVoxel>::iterator it2 =voxelList.begin(); it2 != voxelList.end(); ++it2 )
+            {
+                std::vector<Face*> faceList = it2->GetFaceList();
+                for ( std::vector<Face*>::iterator it3 = faceList.begin(); it3 != faceList.end(); ++it3 )
+                {
+                    Face *secondFace = (*it3);
+                    if(firstFace == secondFace)
+                    {
+                        FacePair pair(firstFace, secondFace);
+                        pairList.AddPair(pair);
+                        continue;
+                    }
+                    float vertices[3][3];
+                    secondFace->GetVertices(vertices);
+                    
+                    float dist;
+                    if(CheckRayTriangleIntersection(vertices[0], vertices[1], vertices[2], firstFaceCentre, rayList[i], dist))
+                    {
+                        FacePair pair(firstFace, secondFace);
+                        intersectPairs.push_back(pair);
+                        intersectDistances.push_back(dist);
+                    }
+                    
+                }
+            }
+            int minIndex = -1;
+            int count = 0;
+            float minDistance = -1.0;
+            
+            for(std::vector<float>::iterator distit = intersectDistances.begin(); distit != intersectDistances.end(); ++distit)
+            {
+                if(minDistance == -1.0)
+                {
+                    minDistance = *distit;
+                    minIndex = count;
+                }
+                else if(*distit < minDistance)
+                {
+                    minDistance = *distit;
+                    minIndex = count;
+                }
+                count++;
+            }
+            count = 0;
+            if(minIndex!= - 1)
+            {
+                for(std::vector<FacePair>::iterator pairit = intersectPairs.begin(); pairit != intersectPairs.end(); ++pairit)
+                {
+                    if(count == minIndex)
+                    {
+                        pairList.AddPair(*pairit);
+                    }
+                    else
+                    {
+                        missList.AddPair(*pairit);
+                    }
+                    count++;
+                }
+            }
+            
+            
+        }
+        
+        delete[] rayList;
+    }
+    clusterList = getSegmentationMap(&pairList,  &missList, &newFaceList, 3);
+
+}
 void Segment()
 {
+    if(clusterList != NULL)
+    {
+        delete[] clusterList;
+        clusterList = NULL;
+    }
     int k = 30;
     FacePairList pairList;
     FacePairList missList;
@@ -1823,15 +2085,18 @@ void myGlutDisplay( void )
                 //rayIntersectionTest();
                 DrawWireframe();
                 break;
-            case FLATSHADED:
-                DrawClusterList();
+            case WIREFRAMEWITHRAYS:
+                //DrawClusterList();
                 //DrawVoxelShaded();
+                //glEnable(GL_LIGHTING);
                 //DrawFlatShaded();
+                DrawWireframeWithRays();
                 break;
-            case SMOOTHSHADED:
-                DrawSmoothShaded();
+            case SEGMENTED:
+                //DrawSmoothShaded();
+                DrawClusterList();
                 break;
-            case SHADEDMESH:
+            case COLLAGED:
                 DrawShadedMesh();
                 break;
             default:
@@ -1868,10 +2133,11 @@ int main(int argc, char * argv[]) {
     
     glColorMaterial(GL_FRONT, GL_DIFFUSE);
     glEnable(GL_COLOR_MATERIAL);
+    glEnable(GL_CULL_FACE);
     
     /*glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
-    glEnable(GL_CULL_FACE);
+    
     glLightfv(GL_LIGHT0, GL_AMBIENT, light0_ambient);
     glLightfv(GL_LIGHT0, GL_DIFFUSE, light0_diffuse);
     glLightfv(GL_LIGHT0, GL_POSITION, light0_position);*/
@@ -1891,9 +2157,9 @@ int main(int argc, char * argv[]) {
     GLUI_Listbox *listbox = glui->add_listbox("Display Mode", &DISPLAYMODE, -1, SetDisplay);
     
     listbox->add_item(WIREFRAME,"Wireframe");
-    listbox->add_item(FLATSHADED,"Flat Shaded");
-    listbox->add_item(SMOOTHSHADED,"Smooth Shaded");
-    listbox->add_item(SHADEDMESH,"Shaded + Mesh Edges");
+    listbox->add_item(WIREFRAMEWITHRAYS,"Wired With Rays");
+    listbox->add_item(SEGMENTED,"Segmented");
+    listbox->add_item(COLLAGED,"Collage");
     
     ROTATION = glui->add_rotation("Rotate", ROTATION_MATRIX);
     ROTATION->reset();

@@ -84,7 +84,7 @@ void Face::CalculateNormal()
     CreateVector(vertexes[0]->GetCoordinates(), vertexes[1]->GetCoordinates(), vec1);
     CreateVector(vertexes[2]->GetCoordinates(), vertexes[1]->GetCoordinates(), vec2);
     
-    VectorCross(vec1, vec2, normal);
+    VectorCross(vec2, vec1, normal);
     
     NormalizeVector(normal);
     

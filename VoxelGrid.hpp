@@ -20,6 +20,7 @@ public:
     VoxelGrid(const float (&maxDimensions)[COORDINATESIZE], const float (&minDimensions)[COORDINATESIZE], int voxelDimension);
     ~VoxelGrid();
     void InsertFaces(FaceMap &faceList);
+    void GetVoxelsAlongRay(const Point &origin, const Vector3 &ray, std::vector<FaceVoxel> &voxelList);
     FaceVoxel ***GetGrid();
     int GetGridDimension();
 private:
