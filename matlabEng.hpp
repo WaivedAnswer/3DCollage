@@ -21,5 +21,8 @@ void bestFit(int, double[], double[]);
 void comparePCA();
 void generateNewMeshFile();
 int test();
+int newMeshPCA(std::string, std::string);
+int getMeshVnum(std::string filename);
+int getMeshFnum(std::string filename);
 
 #endif /* matlabEng_hpp */
