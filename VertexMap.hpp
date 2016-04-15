@@ -11,6 +11,7 @@
 
 #include <stdio.h>
 #include <list>
+#include <vector>
 #include <algorithm>
 #include "Vertex.hpp"
 #include "Face.hpp"
@@ -21,14 +22,15 @@ class VertexMap
 {
 public:
     VertexMap();
+    VertexMap(int size);
     
-    
+    void Reserve(int size);
     //To be called after decimation or subdivision
     void UpdateVertexIndexes();
     
-    std::list<Vertex>::iterator GetBeginIterator();
+    std::vector<Vertex>::iterator GetBeginIterator();
     
-    std::list<Vertex>::iterator GetEndIterator();
+    std::vector<Vertex>::iterator GetEndIterator();
     
     Vertex *GetVertex(int index);
     
@@ -53,7 +55,7 @@ public:
     
 private:
     bool dirty;
-    std::list<Vertex> vertexList;
+    std::vector<Vertex> vertexList;
     float maxDimensions[COORDINATESIZE];
     float minDimensions[COORDINATESIZE];
     int count;

@@ -382,7 +382,7 @@ void DrawSmoothShaded(void)
     //glEnable(GL_POLYGON_OFFSET_FILL);
     glColor3f(0.8f, 0.2f, 0.2f);
     glBegin(GL_TRIANGLES);
-    for ( std::list<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); ++it )
+    for ( std::vector<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); ++it )
     {
         Face * currFace = &(*it);
         if(currFace == NULL)
@@ -451,7 +451,7 @@ void DrawRays(void)
 {
     
     glColor3f(1.0f, 0.0f, 1.0f);
-    std::list<Face>::iterator firstFace = newFaceList.GetBeginIterator();
+    std::vector<Face>::iterator firstFace = newFaceList.GetBeginIterator();
     /*int x = 3;
     for(int i = 0; i<x ; i++)
     {
@@ -500,7 +500,7 @@ void RayIntersections()
     FacePairList pairList;
     FacePairList missList;
     
-    for ( std::list<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); ++it )
+    for ( std::vector<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); ++it )
     {
         Face *firstFace = &(*it);
         Vector3 *rayList = firstFace->MakeRays(k);
@@ -511,7 +511,7 @@ void RayIntersections()
         {
             std::vector<FacePair> intersectPairs;
             std::vector<float> intersectDistances;
-            for ( std::list<Face>::iterator it2 = newFaceList.GetBeginIterator(); it2 != newFaceList.GetEndIterator(); ++it2 )
+            for ( std::vector<Face>::iterator it2 = newFaceList.GetBeginIterator(); it2 != newFaceList.GetEndIterator(); ++it2 )
             {
                 
                 Face *secondFace = &(*it2);
@@ -580,7 +580,7 @@ void VoxelRayIntersections()
     FacePairList pairList;
     FacePairList missList;
     
-    for ( std::list<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); ++it )
+    for ( std::vector<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); ++it )
     {
         Face *firstFace = &(*it);
         Vector3 *rayList = firstFace->MakeRays(k);
@@ -665,7 +665,7 @@ void DrawWireframe(void)
 {
     //glEnable(GL_LIGHTING);
     glColor3f(0.0f, 0.0f, 0.0f);
-    for ( std::list<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); ++it )
+    for ( std::vector<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); ++it )
     {
         Face * currFace = &(*it);
         if(currFace == NULL)
@@ -713,7 +713,7 @@ void DrawWireframeWithRays(void)
 {
     //glEnable(GL_LIGHTING);
     glColor3f(0.0f, 0.0f, 0.0f);
-    for ( std::list<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); ++it )
+    for ( std::vector<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); ++it )
     {
         Face * currFace = &(*it);
         if(currFace == NULL)
@@ -855,7 +855,7 @@ void DrawVoxelShaded(void)
     }
     glEnd();
     
-    /*for ( std::list<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); ++it )
+    /*for ( std::vector<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); ++it )
     {
 
         Face * currFace = &(*it);
@@ -912,7 +912,7 @@ void DrawFlatShaded(void)
     //glEnable(GL_POLYGON_OFFSET_FILL);
     glColor3f(0.8f, 0.2f, 0.2f);
     glBegin(GL_TRIANGLES);
-    for ( std::list<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); ++it )
+    for ( std::vector<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); ++it )
     {
         Face * currFace = &(*it);
         if(currFace == NULL)
@@ -969,7 +969,7 @@ void DrawShadedMesh(void)
     
     glColor3f(0.8f, 0.2f, 0.2f);
     glBegin(GL_TRIANGLES);
-    for ( std::list<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); ++it )
+    for ( std::vector<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); ++it )
     {
         Face *currFace = &(*it);
         if(currFace == NULL)
@@ -1024,7 +1024,7 @@ void DrawShadedMesh(void)
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glColor3f(0.0f, 0.0f, 0.0f);
-    for ( std::list<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); ++it )
+    for ( std::vector<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); ++it )
     {
         Face * currFace = &(*it);
         if(currFace == NULL)
@@ -1415,7 +1415,8 @@ void ReadMeshFile(const char * filename)
             if(!ListsInitialized && line[0] == '#')
             {
                 GetListSizes(line);
-                
+                newVertexList.Reserve(totalVertexListLength);
+                newFaceList.Reserve(totalFaceListLength);
                 EdgeMapList = new EdgeMap(totalVertexListLength, &newVertexList, &newFaceList);
                 if( EdgeMapList == NULL)
                 {
@@ -1620,7 +1621,7 @@ void OutputMeshFile(const char * filename)
     if(meshFile.is_open())
     {
         meshFile << "# " << newVertexList.GetCount() << " " << newFaceList.GetCount() <<"\n";
-        for ( std::list<Vertex>::iterator it = newVertexList.GetBeginIterator(); it != newVertexList.GetEndIterator(); ++it )
+        for ( std::vector<Vertex>::iterator it = newVertexList.GetBeginIterator(); it != newVertexList.GetEndIterator(); ++it )
         {
             meshFile << "v ";
             Vertex *currVertex = &(*it);
@@ -1634,7 +1635,7 @@ void OutputMeshFile(const char * filename)
 
         }
 
-        for ( std::list<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); ++it )
+        for ( std::vector<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); ++it )
         {
             Face *currFace = &(*it);
             WingedEdge *originalFaceEdge = currFace->GetEdge();
@@ -1672,7 +1673,7 @@ void OutputMeshFile(const char * filename)
 
 void rayIntersectionTest()
 {
-    std::list<Face>::iterator firstFace = newFaceList.GetBeginIterator();
+    std::vector<Face>::iterator firstFace = newFaceList.GetBeginIterator();
     float firstFaceCentre[COORDINATESIZE] = {0.0,0.0,0.0};
     //float origin[COORDINATESIZE] = {0.0,0.0,0.0};
     firstFace->GetCentre(firstFaceCentre);
@@ -1681,7 +1682,7 @@ void rayIntersectionTest()
     glBegin(GL_TRIANGLES);
 
     
-    for ( std::list<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); ++it )
+    for ( std::vector<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); ++it )
     {
         Face * currentFace = &(*it);
         float currFaceCentre[COORDINATESIZE] = {0.0,0.0,0.0};
@@ -1759,12 +1760,12 @@ void DrawClusterList()
     glDisable(GL_LIGHTING);
     
     glBegin(GL_TRIANGLES);
-    for ( std::list<FaceCluster>::iterator it = clusterList->GetBeginIterator(); it != clusterList->GetEndIterator(); ++it )
+    for ( std::vector<FaceCluster>::iterator it = clusterList->GetBeginIterator(); it != clusterList->GetEndIterator(); ++it )
     {
         FaceCluster *currentCluster = &(*it);
         clusterCount++;
         
-        for ( std::list<Face*>::iterator it2 = currentCluster->GetBeginIterator(); it2 != currentCluster->GetEndIterator(); ++it2 )
+        for ( std::vector<Face*>::iterator it2 = currentCluster->GetBeginIterator(); it2 != currentCluster->GetEndIterator(); ++it2 )
         {
             Face *currentFace = *it2;
             //glEnable(GL_POLYGON_OFFSET_FILL);
@@ -1859,7 +1860,7 @@ void VoxelSegment()
     FacePairList pairList;
     FacePairList missList;
     
-    for ( std::list<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); ++it )
+    for ( std::vector<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); ++it )
     {
         Face *firstFace = &(*it);
         Vector3 *rayList = firstFace->MakeRays(k);
@@ -1951,7 +1952,7 @@ void Segment()
     FacePairList pairList;
     FacePairList missList;
     
-    for ( std::list<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); ++it )
+    for ( std::vector<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); ++it )
     {
         Face *firstFace = &(*it);
         Vector3 *rayList = firstFace->MakeRays(k);
@@ -1962,7 +1963,7 @@ void Segment()
         {
             std::vector<FacePair> intersectPairs;
             std::vector<float> intersectDistances;
-            for ( std::list<Face>::iterator it2 = newFaceList.GetBeginIterator(); it2 != newFaceList.GetEndIterator(); ++it2 )
+            for ( std::vector<Face>::iterator it2 = newFaceList.GetBeginIterator(); it2 != newFaceList.GetEndIterator(); ++it2 )
             {
                 
                 Face *secondFace = &(*it2);

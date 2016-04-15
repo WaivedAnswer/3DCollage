@@ -14,11 +14,22 @@ FaceMap::FaceMap()
     dirty = false;
 }
 
+FaceMap::FaceMap(int size)
+{
+    count = 0;
+    dirty = false;
+    faceList.reserve(size);
+}
+
+void FaceMap::Reserve(int size)
+{
+    faceList.reserve(size);
+}
 //To be called after decimation or subdivision
 void FaceMap::UpdateFaceIndexes()
 {
     int updateCount = 0;
-    for (std::list<Face>::iterator it = faceList.begin(); it != faceList.end(); ++it)
+    for (std::vector<Face>::iterator it = faceList.begin(); it != faceList.end(); ++it)
     {
         it->SetIndex(updateCount);
         updateCount++;
@@ -26,24 +37,24 @@ void FaceMap::UpdateFaceIndexes()
     dirty = false;
 }
 
-std::list<Face>::iterator FaceMap::GetBeginIterator()
+std::vector<Face>::iterator FaceMap::GetBeginIterator()
 {
     return faceList.begin();
 }
 
-std::list<Face>::iterator FaceMap::GetEndIterator()
+std::vector<Face>::iterator FaceMap::GetEndIterator()
 {
     return faceList.end();
 }
 
 Face *FaceMap::GetFace(int index)
 {
-    if(index > count || dirty == true)
+    /*if(index > count || dirty == true)
     {
         return NULL;
     }
     int faceCount = 0;
-    for (std::list<Face>::iterator it = faceList.begin(); it != faceList.end(); ++it)
+    for (std::vector<Face>::iterator it = faceList.begin(); it != faceList.end(); ++it)
     {
         if (faceCount == index)
         {
@@ -51,7 +62,12 @@ Face *FaceMap::GetFace(int index)
         }
         faceCount++;
     }
-    return NULL;
+    return NULL;*/
+    if(index > count || dirty == true)
+    {
+        return NULL;
+    }
+    return &faceList[index];
 }
 
 Face *FaceMap::GetFace(Face *face)
@@ -60,7 +76,7 @@ Face *FaceMap::GetFace(Face *face)
     {
         return NULL;
     }
-    std::list<Face>::iterator it = find (faceList.begin(), faceList.end(), *face);
+    std::vector<Face>::iterator it = find (faceList.begin(), faceList.end(), *face);
     if(it != faceList.end())
     {
         return &(*it);
@@ -77,7 +93,7 @@ Face *FaceMap::GetLastFace()
 //to be called after import
 void FaceMap::CalculateNormals()
 {
-    for (std::list<Face>::iterator it = faceList.begin(); it != faceList.end(); ++it)
+    for (std::vector<Face>::iterator it = faceList.begin(); it != faceList.end(); ++it)
     {
         it->CalculateNormal();
     }
@@ -105,7 +121,7 @@ bool FaceMap::EraseFace(Face *face)
     {
         return false;
     }
-    std::list<Face>::iterator it = std::find(faceList.begin(), faceList.end(), *face);
+    std::vector<Face>::iterator it = std::find(faceList.begin(), faceList.end(), *face);
     if(it != faceList.end())
     {
         faceList.erase(it);
@@ -123,7 +139,7 @@ bool FaceMap::EraseFace(int index)
         return false;
     }
     int faceCount = 0;
-    for (std::list<Face>::iterator it = faceList.begin(); it != faceList.end(); ++it)
+    for (std::vector<Face>::iterator it = faceList.begin(); it != faceList.end(); ++it)
     {
         if (faceCount == index)
         {

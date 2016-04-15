@@ -75,7 +75,7 @@ void VoxelGrid::InsertFaces(FaceMap &faceList)
     
     
 
-    for ( std::list<Face>::iterator it = faceList.GetBeginIterator(); it != faceList.GetEndIterator(); ++it )
+    for ( std::vector<Face>::iterator it = faceList.GetBeginIterator(); it != faceList.GetEndIterator(); ++it )
     {
         Face * currFace = &(*it);
         if(currFace != NULL)
