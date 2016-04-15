@@ -38,4 +38,7 @@ void VectorCross(const float (&vec1)[3], const float (&vec2)[3], float (&cross)[
 void VectorCross(const float *vec1, const float *vec2, float (&cross)[3]);
 float VectorDot(const float (&vec1)[3], const float (&vec2)[3]);
 float VectorDot(const float *vec1, const float *vec2);
+//from glu matrix
+bool gluInvertMatrix(const double (&m)[16], double (&invOut)[16]);
+
 #endif /* SmfCommon_hpp */
