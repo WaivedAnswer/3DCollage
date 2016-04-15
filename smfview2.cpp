@@ -26,10 +26,11 @@
 #include "FaceClusterList.hpp"
 #include "ConcavitySeg.h"
 #include "SmfCommon.hpp"
+#include "matlabEng.hpp"
 
 
 enum DisplayTypes {WIREFRAME, FLATSHADED, SMOOTHSHADED, SHADEDMESH};
-enum ButtonValues {OPENBUTTON, SAVEBUTTON, DECIMATEBUTTON, QUITBUTTON};
+enum ButtonValues {OPENBUTTON, SAVEBUTTON, DECIMATEBUTTON, LOADOBJBUTTON, QUITBUTTON, CLUSTERBUTTON};
 
 /** These are the live variables passed into GLUI ***/
 int DISPLAYMODE = WIREFRAME;
@@ -41,15 +42,16 @@ float ROTATION_MATRIX[16];
 float Z_TRANS = 0;
 float XY_TRANS[2] = {0,0};
 char OPENFILENAME[200] = "";
+char LOADOBJNAME[200] = "";
 char SAVEFILENAME[200] = "";
 
 //GLUI pointers
 GLUI_Rotation *ROTATION;
 GLUI_Translation *ZOOM;
 GLUI_Translation *TRANSLATION;
-GLUI_Button* DECIMATE;
+GLUI_Button* DECIMATE, * LOADOBJPCA, *CLUSTERPCA;
 //GLUI_Button* OPEN;
-GLUI_EditText* OPENTEXT;
+GLUI_EditText* OPENTEXT, * LOADOBJTEXT;
 
 //GLUI_Button* SAVE;
 GLUI_EditText* SAVETEXT;
@@ -864,6 +866,7 @@ void glui_cb(int control)
 {
     std::string savename = SAVEFILENAME;
     std::string openname = OPENFILENAME;
+    std::string loadname = LOADOBJNAME;
     /*const char * n = DECIMATENTEXT->get_text();
     std::string Nstr = n;
     const char * k = DECIMATEKTEXT->get_text();
@@ -879,13 +882,21 @@ void glui_cb(int control)
             OutputMeshFile(&savename[0]);
             break;
         case DECIMATEBUTTON:
-            if(EdgeMapList != NULL)
-            {
-                //EdgeMapList->ReHashEdges();
-                DODRAW = false;
-                EdgeMapList->MCDecimateNEdges(NDecimate, KChoose);
-                DODRAW = true;
-            }
+//            if(EdgeMapList != NULL)
+//            {
+//                //EdgeMapList->ReHashEdges();
+//                DODRAW = false;
+//                EdgeMapList->MCDecimateNEdges(NDecimate, KChoose);
+//                DODRAW = true;
+//            }
+            test();
+            break;
+        case LOADOBJBUTTON:
+//            test();
+            readObjPCA(&loadname[0]);
+            break;
+        case CLUSTERBUTTON:
+            
             break;
         case QUITBUTTON:
 	    CleanupLists();
@@ -1300,7 +1311,9 @@ void pyramidClusterDrawTest()
     }
     
     FaceClusterList* clusterList = getSegmentationMap(&pairList,  &missList, &newFaceList, 3);
-    
+//    fclPCA(clusterList);
+
+
     int clusterCount = 0;
     glDisable(GL_LIGHTING);
     
@@ -1386,10 +1399,12 @@ void pyramidClusterDrawTest()
 
             
         }
+        
     }
     glEnd();
     if(clusterList != NULL)
     {
+        
         delete clusterList;
         clusterList = NULL;
     }
@@ -1457,7 +1472,8 @@ void myGlutDisplay( void )
                 //DrawFlatShaded();
                 break;
             case SMOOTHSHADED:
-                DrawSmoothShaded();
+//                test();
+//                DrawSmoothShaded();
                 break;
             case SHADEDMESH:
                 DrawShadedMesh();
@@ -1541,6 +1557,14 @@ int main(int argc, char * argv[]) {
     GLUI_Panel * OpenPanel = glui->add_panel("Open Panel");
     //OPEN = glui->add_button_to_panel(OpenPanel, "Open", OPENBUTTON, glui_cb);
     OPENTEXT = glui->add_edittext_to_panel(OpenPanel, "Filename", GLUI_EDITTEXT_TEXT, OPENFILENAME, OPENBUTTON, glui_cb);
+    
+    GLUI_Panel * OpenObjPanel = glui->add_panel("Open Object file Panel");
+    LOADOBJTEXT = glui->add_edittext_to_panel(OpenObjPanel, "Filename", GLUI_EDITTEXT_TEXT, LOADOBJNAME, NULL, glui_cb);
+    LOADOBJPCA = glui->add_button_to_panel(OpenObjPanel, "Load file", LOADOBJBUTTON, glui_cb);
+    
+    GLUI_Panel * getClusterPCAPanel = glui->add_panel("Get Cluster PCA Panel");
+   CLUSTERPCA = glui->add_button_to_panel(getClusterPCAPanel, "Get now", CLUSTERBUTTON, glui_cb);
+    
     
     GLUI_Panel * SavePanel = glui->add_panel("Save Panel");
     //SAVE = glui->add_button_to_panel(SavePanel, "Save", SAVEBUTTON, glui_cb);

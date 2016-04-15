@@ -554,6 +554,18 @@ void deleteFiles(){
     return;
 }
 
+void readObjPCA(string filename){
+    readSMF(filename);
+        if (vnum!=0){
+            double M_x[vnum],M_y[vnum],M_z[vnum];
+            for (int i=0; i<vnum; i++){
+                M_x[i] = Mesh(0,i);
+                M_y[i] = Mesh(1,i);
+                M_z[i] = Mesh(2,i);
+            }
+            matlabObjPCA(M_x,M_y,M_z,vnum, filename, 2);
+        }
+}
 
 int test()
 {

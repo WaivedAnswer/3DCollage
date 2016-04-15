@@ -24,5 +24,6 @@ int test();
 int newMeshPCA(std::string, std::string);
 int getMeshVnum(std::string filename);
 int getMeshFnum(std::string filename);
+void readObjPCA(std::string);
 
 #endif /* matlabEng_hpp */
