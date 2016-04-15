@@ -26,6 +26,7 @@
 #include "FaceClusterList.hpp"
 #include "ConcavitySeg.h"
 #include "SmfCommon.hpp"
+#include "matlabEng.hpp"
 
 
 enum DisplayTypes {WIREFRAME, FLATSHADED, SMOOTHSHADED, SHADEDMESH};
@@ -67,8 +68,8 @@ int edgeHelperListLength = 0;
 int totalEdgeListLength = 0;
 
 
-
-
+FaceClusterList* clusterList = NULL;
+void Segment();
 
 /*struct W_edge
 {
@@ -101,12 +102,12 @@ struct W_edgeHelper
 
 //std::vector<W_edge> EdgeList;
 
-EdgeMap *EdgeMapList;
+EdgeMap *EdgeMapList = NULL;
 
 //std::vector<Face> FaceList;
 FaceMap newFaceList;
 
-VoxelGrid *gridList;
+VoxelGrid *gridList = NULL;
 
 
 //std::vector<Vertex> VertexList;
@@ -189,6 +190,11 @@ void CleanupLists()
     {
         delete gridList;
         gridList = NULL;
+    }
+    if(clusterList != NULL)
+    {
+        delete clusterList;
+        clusterList = NULL;
     }
     CleanupFaceList();
     CleanupVertexList();
@@ -421,41 +427,131 @@ void DrawSmoothShaded(void)
     
 }
 
-/*void DrawRays(void)
+void DrawRays(void)
 {
     
     glColor3f(1.0f, 0.0f, 1.0f);
     std::list<Face>::iterator firstFace = newFaceList.GetBeginIterator();
+    firstFace++;
+    firstFace++;
     float firstFaceCentre[COORDINATESIZE] = {0.0,0.0,0.0};
     //float origin[COORDINATESIZE] = {0.0,0.0,0.0};
     firstFace->GetCentre(firstFaceCentre);
+    int k = 30;
+    Vector3 *rayList = firstFace->MakeRays(k);
     
-    for ( std::list<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); ++it )
+    for ( int i = 0; i<k; i++ )
     {
-        Face * currFace = &(*it);
-        float currFaceCentre[COORDINATESIZE] = {0.0,0.0,0.0};
-        if(currFace == NULL)
-        {
-            return;
-        }
-        
-        currFace->GetCentre(currFaceCentre);
-        
         glBegin(GL_LINE_STRIP);
         
         glVertex3fv(firstFaceCentre);
-        
-        glVertex3fv(currFaceCentre);
-
+        float ray[COORDINATESIZE] = {0.0,0.0,0.0};
+        AddVectorToPoint(firstFaceCentre, ray, 1.0, ray);
+        AddVectorToPoint(rayList[i], ray, 1.0, ray);
+        glVertex3fv(ray);
         glEnd();
     }
-}*/
+    glColor3f(0.0f, 0.0f, 1.0f);
+    
+    glBegin(GL_LINE_STRIP);
+    
+    glVertex3fv(firstFaceCentre);
+    float firstFaceNormal[COORDINATESIZE] = {0.0,0.0,0.0};
+    firstFace->GetNormal(firstFaceNormal);
+    AddVectorToPoint(firstFaceNormal, firstFaceCentre, 1.0, firstFaceNormal);
+    glVertex3fv(firstFaceNormal);
+    
+    glEnd();
+    
+    delete[] rayList;
+
+}
+
+void RayIntersections()
+{
+    int k = 30;
+    FacePairList pairList;
+    FacePairList missList;
+    
+    for ( std::list<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); ++it )
+    {
+        Face *firstFace = &(*it);
+        Vector3 *rayList = firstFace->MakeRays(k);
+        float firstFaceCentre[COORDINATESIZE] = {0.0,0.0,0.0};
+        firstFace->GetCentre(firstFaceCentre);
+        
+        for (int i = 0 ; i<k; i++)
+        {
+            std::vector<FacePair> intersectPairs;
+            std::vector<float> intersectDistances;
+            for ( std::list<Face>::iterator it2 = newFaceList.GetBeginIterator(); it2 != newFaceList.GetEndIterator(); ++it2 )
+            {
+                
+                Face *secondFace = &(*it2);
+                if(it == it2)
+                {
+                    FacePair pair(firstFace, secondFace);
+                    pairList.AddPair(pair);
+                    continue;
+                }
+                float vertices[3][3];
+                secondFace->GetVertices(vertices);
+                
+                float dist;
+                if(CheckRayTriangleIntersection(vertices[0], vertices[1], vertices[2], firstFaceCentre, rayList[i], dist))
+                {
+                    FacePair pair(firstFace, secondFace);
+                    intersectPairs.push_back(pair);
+                    intersectDistances.push_back(dist);
+                }
+            }
+            int minIndex = -1;
+            int count = 0;
+            float minDistance = -1.0;
+            
+            for(std::vector<float>::iterator distit = intersectDistances.begin(); distit != intersectDistances.end(); ++distit)
+            {
+                if(minDistance == -1.0)
+                {
+                    minDistance = *distit;
+                    minIndex = count;
+                }
+                else if(*distit < minDistance)
+                {
+                    minDistance = *distit;
+                    minIndex = count;
+                }
+                count++;
+            }
+            count = 0;
+            if(minIndex!= - 1)
+            {
+                for(std::vector<FacePair>::iterator pairit = intersectPairs.begin(); pairit != intersectPairs.end(); ++pairit)
+                {
+                    if(count == minIndex)
+                    {
+                        pairList.AddPair(*pairit);
+                    }
+                    else
+                    {
+                        missList.AddPair(*pairit);
+                    }
+                    count++;
+                }
+            }
+
+            
+        }
+        
+        delete[] rayList;
+    }
+}
 
 
 void DrawWireframe(void)
 {
-    
-    glColor3f(1.0f, 1.0f, 1.0f);
+    //glEnable(GL_LIGHTING);
+    glColor3f(0.0f, 0.0f, 0.0f);
     for ( std::list<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); ++it )
     {
         Face * currFace = &(*it);
@@ -879,13 +975,15 @@ void glui_cb(int control)
             OutputMeshFile(&savename[0]);
             break;
         case DECIMATEBUTTON:
-            if(EdgeMapList != NULL)
+            /*if(EdgeMapList != NULL)
             {
                 //EdgeMapList->ReHashEdges();
                 DODRAW = false;
                 EdgeMapList->MCDecimateNEdges(NDecimate, KChoose);
                 DODRAW = true;
-            }
+            }*/
+            //RayIntersections();
+            Segment();
             break;
         case QUITBUTTON:
 	    CleanupLists();
@@ -1128,8 +1226,8 @@ void ReadMeshFile(const char * filename)
         newVertexList.GetMaxAndMinDimensions(maxDimensions, minDimensions);
         
         
-        gridList = new VoxelGrid(maxDimensions, minDimensions, 10);
-        gridList->InsertFaces(newFaceList);
+        //gridList = new VoxelGrid(maxDimensions, minDimensions, 10);
+        //gridList->InsertFaces(newFaceList);
         newFaceList.CalculateNormals();
         newVertexList.CalculateNormals();
         newVertexList.InitQuadrics();
@@ -1282,24 +1380,13 @@ void rayIntersectionTest()
 
 }
 
-//tests getSegmentationMap with a pyramid mesh to determine whether it clusters correctly
-//also Draws to screen
-void pyramidClusterDrawTest()
+void DrawClusterList()
 {
-    FacePairList pairList;
-    FacePairList missList;
-    for ( std::list<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); ++it )
+    if(clusterList== NULL)
     {
-        Face *firstFace = &(*it);
-        for ( std::list<Face>::iterator it2 = newFaceList.GetBeginIterator(); it2 != newFaceList.GetEndIterator(); ++it2 )
-        {
-            Face *secondFace = &(*it);
-            FacePair pair(firstFace, secondFace);
-            pairList.AddPair(pair);
-        }
+        return;
     }
-    
-    FaceClusterList* clusterList = getSegmentationMap(&pairList,  &missList, &newFaceList, 3);
+    //fclPCA(clusterList);
     
     int clusterCount = 0;
     glDisable(GL_LIGHTING);
@@ -1309,12 +1396,12 @@ void pyramidClusterDrawTest()
     {
         FaceCluster *currentCluster = &(*it);
         clusterCount++;
-
+        
         for ( std::list<Face*>::iterator it2 = currentCluster->GetBeginIterator(); it2 != currentCluster->GetEndIterator(); ++it2 )
         {
             Face *currentFace = *it2;
             //glEnable(GL_POLYGON_OFFSET_FILL);
-
+            
             
             int colours = 8;
             switch (clusterCount%colours)
@@ -1382,17 +1469,99 @@ void pyramidClusterDrawTest()
                     currFaceEdge = currFaceEdge->GetLeftPrev();
                 }
             }
-
-
+            
+            
             
         }
     }
     glEnd();
-    if(clusterList != NULL)
+    
+}
+
+//tests getSegmentationMap with a pyramid mesh to determine whether it clusters correctly
+//also Draws to screen
+void Segment()
+{
+    int k = 30;
+    FacePairList pairList;
+    FacePairList missList;
+    
+    for ( std::list<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); ++it )
     {
-        delete clusterList;
-        clusterList = NULL;
+        Face *firstFace = &(*it);
+        Vector3 *rayList = firstFace->MakeRays(k);
+        float firstFaceCentre[COORDINATESIZE] = {0.0,0.0,0.0};
+        firstFace->GetCentre(firstFaceCentre);
+        
+        for (int i = 0 ; i<k; i++)
+        {
+            std::vector<FacePair> intersectPairs;
+            std::vector<float> intersectDistances;
+            for ( std::list<Face>::iterator it2 = newFaceList.GetBeginIterator(); it2 != newFaceList.GetEndIterator(); ++it2 )
+            {
+                
+                Face *secondFace = &(*it2);
+                if(it == it2)
+                {
+                    FacePair pair(firstFace, secondFace);
+                    pairList.AddPair(pair);
+                    continue;
+                }
+                float vertices[3][3];
+                secondFace->GetVertices(vertices);
+                
+                float dist;
+                if(CheckRayTriangleIntersection(vertices[0], vertices[1], vertices[2], firstFaceCentre, rayList[i], dist))
+                {
+                    FacePair pair(firstFace, secondFace);
+                    intersectPairs.push_back(pair);
+                    intersectDistances.push_back(dist);
+                }
+            }
+            int minIndex = -1;
+            int count = 0;
+            float minDistance = -1.0;
+            
+            for(std::vector<float>::iterator distit = intersectDistances.begin(); distit != intersectDistances.end(); ++distit)
+            {
+                if(minDistance == -1.0)
+                {
+                    minDistance = *distit;
+                    minIndex = count;
+                }
+                else if(*distit < minDistance)
+                {
+                    minDistance = *distit;
+                    minIndex = count;
+                }
+                count++;
+            }
+            count = 0;
+            if(minIndex!= - 1)
+            {
+                for(std::vector<FacePair>::iterator pairit = intersectPairs.begin(); pairit != intersectPairs.end(); ++pairit)
+                {
+                    if(count == minIndex)
+                    {
+                        pairList.AddPair(*pairit);
+                    }
+                    else
+                    {
+                        missList.AddPair(*pairit);
+                    }
+                    count++;
+                }
+            }
+            
+            
+        }
+        
+        delete[] rayList;
     }
+    
+    
+    clusterList = getSegmentationMap(&pairList,  &missList, &newFaceList, 3);
+    
     
 }
 /***************************************** myGlutIdle() ***********/
@@ -1448,11 +1617,11 @@ void myGlutDisplay( void )
         switch (DISPLAYMODE)
         {
             case WIREFRAME:
-                rayIntersectionTest();
-                //DrawWireframe();
+                //rayIntersectionTest();
+                DrawWireframe();
                 break;
             case FLATSHADED:
-                pyramidClusterDrawTest();
+                DrawClusterList();
                 //DrawVoxelShaded();
                 //DrawFlatShaded();
                 break;
@@ -1534,7 +1703,6 @@ int main(int argc, char * argv[]) {
     DECIMATE = glui->add_button_to_panel(DecimatePanel, "Decimate", DECIMATEBUTTON, glui_cb);
     GLUI_Spinner *N_spinner = glui->add_spinner( "Collapse N", GLUI_SPINNER_INT, &NDecimate );
     GLUI_Spinner *K_spinner = glui->add_spinner( "Choose K", GLUI_SPINNER_INT, &KChoose );
-
     
     glui->add_separator();
     
