@@ -11,6 +11,7 @@
 
 #include <stdio.h>
 #include <list>
+#include <vector>
 #include <algorithm>
 #include "Vertex.hpp"
 #include "Face.hpp"
@@ -21,12 +22,15 @@ class FaceMap
 {
 public:
     FaceMap();
+    FaceMap(int size);
     //To be called after decimation or subdivision
     void UpdateFaceIndexes();
     
-    std::list<Face>::iterator GetBeginIterator();
+    void Reserve(int size);
+
+    std::vector<Face>::iterator GetBeginIterator();
     
-    std::list<Face>::iterator GetEndIterator();
+    std::vector<Face>::iterator GetEndIterator();
     
     Face *GetFace(int index);
     
@@ -53,7 +57,7 @@ public:
     
 private:
     bool dirty;
-    std::list<Face> faceList;
+    std::vector<Face> faceList;
     int count;
 };
 

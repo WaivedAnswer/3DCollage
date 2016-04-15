@@ -11,16 +11,20 @@
 
 #include <stdio.h>
 #include <list>
+#include <vector>
 #include "Face.hpp"
 class FaceCluster
 {
 public:
     FaceCluster();
+    FaceCluster(int size);
     ~FaceCluster();
     
-    std::list<Face*>::iterator GetBeginIterator();
+    void Reserve(int size);
     
-    std::list<Face*>::iterator GetEndIterator();
+    std::vector<Face*>::iterator GetBeginIterator();
+    
+    std::vector<Face*>::iterator GetEndIterator();
     
     void AddFace(Face* face);
     Face *GetFace(int index);
@@ -28,7 +32,7 @@ public:
     int GetCount();
     
 private:
-    std::list<Face*> faceList;
+    std::vector<Face*> faceList;
     int count;
 };
 #endif /* FaceCluster_hpp */

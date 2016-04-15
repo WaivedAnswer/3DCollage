@@ -19,12 +19,28 @@ VertexMap::VertexMap()
     }
 }
 
+VertexMap::VertexMap(int size)
+{
+    count = 0;
+    dirty = false;
+    for(int i = 0; i < COORDINATESIZE; i++)
+    {
+        maxDimensions[i] = 0.0;
+        minDimensions[i] = 0.0;
+    }
+    vertexList.reserve(size);
+}
+
+void VertexMap::Reserve(int size)
+{
+    vertexList.reserve(size);
+}
 
 //To be called after decimation or subdivision
 void VertexMap::UpdateVertexIndexes()
 {
     int updateCount = 0;
-    for (std::list<Vertex>::iterator it = vertexList.begin(); it != vertexList.end(); ++it)
+    for (std::vector<Vertex>::iterator it = vertexList.begin(); it != vertexList.end(); ++it)
     {
         it->SetIndex(updateCount);
         updateCount++;
@@ -33,12 +49,12 @@ void VertexMap::UpdateVertexIndexes()
     dirty = false;
 }
 
-std::list<Vertex>::iterator VertexMap::GetBeginIterator()
+std::vector<Vertex>::iterator VertexMap::GetBeginIterator()
 {
     return vertexList.begin();
 }
 
-std::list<Vertex>::iterator VertexMap::GetEndIterator()
+std::vector<Vertex>::iterator VertexMap::GetEndIterator()
 {
     return vertexList.end();
 }
@@ -50,7 +66,7 @@ Vertex *VertexMap::GetVertex(int index)
         return NULL;
     }
     int vertexCount = 0;
-    for (std::list<Vertex>::iterator it = vertexList.begin(); it != vertexList.end(); ++it)
+    for (std::vector<Vertex>::iterator it = vertexList.begin(); it != vertexList.end(); ++it)
     {
         if (vertexCount == index)
         {
@@ -64,7 +80,7 @@ Vertex *VertexMap::GetVertex(int index)
 //to be called after import
 void VertexMap::InitQuadrics()
 {
-    for (std::list<Vertex>::iterator it = vertexList.begin(); it != vertexList.end(); ++it)
+    for (std::vector<Vertex>::iterator it = vertexList.begin(); it != vertexList.end(); ++it)
     {
         it->InitQuadric();
     }
@@ -73,7 +89,7 @@ void VertexMap::InitQuadrics()
 //to be called after import
 void VertexMap::CalculateNormals()
 {
-    for (std::list<Vertex>::iterator it = vertexList.begin(); it != vertexList.end(); ++it)
+    for (std::vector<Vertex>::iterator it = vertexList.begin(); it != vertexList.end(); ++it)
     {
         it->CalculateVertexNormal();
     }
@@ -116,7 +132,7 @@ bool VertexMap::EraseVertex(Vertex *vertex)
     {
         return false;
     }
-    std::list<Vertex>::iterator it = std::find(vertexList.begin(), vertexList.end(), *vertex);
+    std::vector<Vertex>::iterator it = std::find(vertexList.begin(), vertexList.end(), *vertex);
     if(it != vertexList.end())
     {
         vertexList.erase(it);
@@ -137,7 +153,7 @@ bool VertexMap::EraseVertex(int index)
         return false;
     }
     int vertexCount = 0;
-    for (std::list<Vertex>::iterator it = vertexList.begin(); it != vertexList.end(); ++it)
+    for (std::vector<Vertex>::iterator it = vertexList.begin(); it != vertexList.end(); ++it)
     {
         if (vertexCount == index)
         {

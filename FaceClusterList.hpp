@@ -17,11 +17,14 @@ class FaceClusterList
 {
 public:
     FaceClusterList();
+    FaceClusterList(int size);
     ~FaceClusterList();
     
-    std::list<FaceCluster>::iterator GetBeginIterator();
+    void Reserve(int size);
     
-    std::list<FaceCluster>::iterator GetEndIterator();
+    std::vector<FaceCluster>::iterator GetBeginIterator();
+    
+    std::vector<FaceCluster>::iterator GetEndIterator();
     
     void AddCluster(const FaceCluster &cluster);
     FaceCluster *GetCluster(int index);
@@ -29,7 +32,7 @@ public:
     int GetCount();
     
 private:
-    std::list<FaceCluster> clusterList;
+    std::vector<FaceCluster> clusterList;
     int count;
 };
 #endif /* FaceClusterList_hpp */

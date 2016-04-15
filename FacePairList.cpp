@@ -12,6 +12,18 @@ FacePairList::FacePairList()
 {
     count = 0;
 }
+
+FacePairList::FacePairList(int size)
+ {
+     count = 0;
+     pairList.reserve(size);
+ }
+
+void FacePairList::Reserve(int size)
+{
+    pairList.reserve(size);
+}
+
 FacePairList::~FacePairList()
 {
     
@@ -28,8 +40,8 @@ FacePair* FacePairList::GetPair(int index)
     {
         return NULL;
     }
-    int pairCount = 0;
-    for (std::list<FacePair>::iterator it = pairList.begin(); it != pairList.end(); ++it)
+    /*int pairCount = 0;
+    for (std::vector<FacePair>::iterator it = pairList.begin(); it != pairList.end(); ++it)
     {
         if (pairCount == index)
         {
@@ -37,7 +49,8 @@ FacePair* FacePairList::GetPair(int index)
         }
         pairCount++;
     }
-    return NULL;
+    return NULL;*/
+    return &pairList[index];
 }
 
 int FacePairList::GetCount() {
