@@ -10,6 +10,7 @@
 #define Face_hpp
 
 #include <stdio.h>
+#include <vector>
 #include "Vertex.hpp"
 #include "WingedEdge.hpp"
 #include "SmfCommon.hpp"
@@ -39,8 +40,8 @@ public:
     
     void GetQuadric(Vertex * vertex, float (&vQuadric)[QUADRICSIZE]);
     
-    //ray list needs to be deleted afterwards
-    Vector3 * MakeRays(int k);
+    // rayList must be deleted afterwards
+    Vector3* MakeRays(int k);
     
 private:
     

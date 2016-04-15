@@ -11,18 +11,21 @@
 
 #include <stdio.h>
 #include <list>
+#include <vector>
 #include "Face.hpp"
 #include "FacePair.hpp"
 class FacePairList
 {
 public:
     FacePairList();
+    FacePairList(int size);
     ~FacePairList();
+    void Reserve(int size);
     void AddPair(const FacePair &pair);
     FacePair *GetPair(int index);
     int GetCount();
 private:
-    std::list<FacePair> pairList;
+    std::vector<FacePair> pairList;
     int count;
 };
 #endif /* FacePairList_hpp */

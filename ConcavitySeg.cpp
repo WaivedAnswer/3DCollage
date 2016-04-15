@@ -27,14 +27,7 @@ FaceClusterList* getSegmentationMap(FacePairList *canSee, FacePairList *cannotSe
         conMatrix[n*facen + n] = 1;
     }
 
-    // set each pair in canSee as visible (+1)
-    for (int i = 0; i < canSee->GetCount(); i++) {
-        FacePair *pair = canSee->GetPair(i);
-        int ind1 = pair->GetFace1()->GetIndex();
-        int ind2 = pair->GetFace2()->GetIndex();
-        conMatrix[ind1*facen + ind2] = 1;
-        conMatrix[ind2*facen + ind1] = 1;
-    }
+
 
     // set each pair in cannotSee as not visible (-1)
     for (int i = 0; i < cannotSee->GetCount(); i++) {
@@ -43,6 +36,15 @@ FaceClusterList* getSegmentationMap(FacePairList *canSee, FacePairList *cannotSe
         int ind2 = pair->GetFace2()->GetIndex();
         conMatrix[ind1*facen + ind2] = -1;
         conMatrix[ind2*facen + ind1] = -1;
+    }
+    
+    // set each pair in canSee as visible (+1)
+    for (int i = 0; i < canSee->GetCount(); i++) {
+        FacePair *pair = canSee->GetPair(i);
+        int ind1 = pair->GetFace1()->GetIndex();
+        int ind2 = pair->GetFace2()->GetIndex();
+        conMatrix[ind1*facen + ind2] = 1;
+        conMatrix[ind2*facen + ind1] = 1;
     }
 
     //// Split the faces with k-means

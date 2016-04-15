@@ -12,17 +12,29 @@ FaceCluster::FaceCluster()
 {
     count = 0;
 }
+
+FaceCluster::FaceCluster(int size)
+{
+    count = 0;
+    faceList.reserve(size);
+}
+
+void FaceCluster::Reserve(int size)
+{
+    faceList.reserve(size);
+}
+
 FaceCluster::~FaceCluster()
 {
     
 }
 
-std::list<Face*>::iterator FaceCluster::GetBeginIterator()
+std::vector<Face*>::iterator FaceCluster::GetBeginIterator()
 {
     return faceList.begin();
 }
 
-std::list<Face*>::iterator FaceCluster::GetEndIterator()
+std::vector<Face*>::iterator FaceCluster::GetEndIterator()
 {
     return faceList.end();
 }
@@ -34,12 +46,12 @@ void FaceCluster::AddFace(Face* face)
 }
 Face *FaceCluster::GetFace(int index)
 {
-    if(index > count)
+    /*if(index > count)
     {
         return NULL;
     }
     int faceCount = 0;
-    for (std::list<Face*>::iterator it = faceList.begin(); it != faceList.end(); ++it)
+    for (std::vector<Face*>::iterator it = faceList.begin(); it != faceList.end(); ++it)
     {
         if (faceCount == index)
         {
@@ -47,7 +59,12 @@ Face *FaceCluster::GetFace(int index)
         }
         faceCount++;
     }
-    return NULL;
+    return NULL;*/
+    if(index > count)
+    {
+        return NULL;
+    }
+    return faceList[index];
 }
 
 void FaceCluster::Clear() {
