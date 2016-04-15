@@ -10,8 +10,8 @@
 #include <vector>
 #include <list>
 #include <cmath>
-#include <GLUI/glui.h>
-#include <GLUT/glut.h>
+#include <GL/glui.h>
+#include <GL/glut.h>
 #include "Vertex.hpp"
 #include "Face.hpp"
 #include "WingedEdge.hpp"
@@ -29,13 +29,14 @@
 
 
 enum DisplayTypes {WIREFRAME, FLATSHADED, SMOOTHSHADED, SHADEDMESH};
-enum ButtonValues {OPENBUTTON, SAVEBUTTON, DECIMATEBUTTON, QUITBUTTON};
+enum ButtonValues {OPENBUTTON, SAVEBUTTON, DECIMATEBUTTON, QUITBUTTON, COLLAGEBUTTON};
 
 /** These are the live variables passed into GLUI ***/
 int DISPLAYMODE = WIREFRAME;
 bool DODRAW = false;
 int NDecimate = 0;
 int KChoose = 0;
+int Segments = 1;
 int MAIN_WINDOW;
 float ROTATION_MATRIX[16];
 float Z_TRANS = 0;
@@ -891,6 +892,9 @@ void glui_cb(int control)
 	    CleanupLists();
             exit(EXIT_SUCCESS);
             break;
+        case COLLAGEBUTTON:
+            // call the PCA stuff
+            break;
     }
 }
 
@@ -1299,7 +1303,7 @@ void pyramidClusterDrawTest()
         }
     }
     
-    FaceClusterList* clusterList = getSegmentationMap(&pairList,  &missList, &newFaceList, 3);
+    FaceClusterList* clusterList = getSegmentationMap(&pairList,  &missList, &newFaceList, Segments);
     
     int clusterCount = 0;
     glDisable(GL_LIGHTING);
@@ -1532,8 +1536,8 @@ int main(int argc, char * argv[]) {
     
     GLUI_Panel * DecimatePanel = glui->add_panel("Decimate Panel");
     DECIMATE = glui->add_button_to_panel(DecimatePanel, "Decimate", DECIMATEBUTTON, glui_cb);
-    GLUI_Spinner *N_spinner = glui->add_spinner( "Collapse N", GLUI_SPINNER_INT, &NDecimate );
-    GLUI_Spinner *K_spinner = glui->add_spinner( "Choose K", GLUI_SPINNER_INT, &KChoose );
+    GLUI_Spinner *N_spinner = glui->add_spinner_to_panel(DecimatePanel, "Collapse N", GLUI_SPINNER_INT, &NDecimate );
+    GLUI_Spinner *K_spinner = glui->add_spinner_to_panel(DecimatePanel, "Choose K", GLUI_SPINNER_INT, &KChoose );
 
     
     glui->add_separator();
@@ -1546,6 +1550,13 @@ int main(int argc, char * argv[]) {
     //SAVE = glui->add_button_to_panel(SavePanel, "Save", SAVEBUTTON, glui_cb);
     SAVETEXT = glui->add_edittext_to_panel(SavePanel, "Filename", GLUI_EDITTEXT_TEXT, SAVEFILENAME, SAVEBUTTON, glui_cb);
     
+    glui->add_separator();
+
+    GLUI_Panel * CollagePanel = glui->add_panel("Collage Panel");
+    GLUI_EditText *SegmentSpinner = glui->add_edittext_to_panel(CollagePanel, "Number of Segments", GLUI_EDITTEXT_INT, &Segments );
+    SegmentSpinner->set_int_limits(1, 8);
+    GLUI_Button *CollagifyButton = glui->add_button_to_panel(CollagePanel, "Collagify", COLLAGEBUTTON, glui_cb);
+
     
     glui->add_separator();
     QUIT = glui->add_button("Quit", QUITBUTTON, glui_cb);
