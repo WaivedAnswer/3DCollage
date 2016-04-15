@@ -75,18 +75,18 @@ void VoxelGrid::InsertFaces(FaceMap &faceList)
     for ( std::list<Face>::iterator it = faceList.GetBeginIterator(); it != faceList.GetEndIterator(); ++it )
     {
         Face * currFace = &(*it);
-        if(currFace == NULL)
+        if(currFace != NULL)
         {
-            return;
+            float faceCoordinates[COORDINATESIZE] = {0.0,0.0,0.0};
+            currFace->GetCentre(faceCoordinates);
+            int indexes[COORDINATESIZE] = {0,0,0};
+            for (int i = 0; i<COORDINATESIZE; i++)
+            {
+                indexes[i] = (faceCoordinates[i]-minDims[i])/voxelDimensions[i];
+            }
+            grid[indexes[0]][indexes[1]][indexes[2]].AddFace(currFace);
+        
         }
-        float faceCoordinates[COORDINATESIZE] = {0.0,0.0,0.0};
-        currFace->GetCentre(faceCoordinates);
-        int indexes[COORDINATESIZE] = {0,0,0};
-        for (int i = 0; i<COORDINATESIZE; i++)
-        {
-            indexes[i] = (faceCoordinates[i]-minDims[i])/voxelDimensions[i];
-        }
-        grid[indexes[0]][indexes[1]][indexes[2]].AddFace(currFace);
     }
 
 }
