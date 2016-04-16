@@ -474,72 +474,19 @@ void generateNewMeshFile()
     
     if (inFile.is_open())
     {
-       int verCount =0;
         while(inFile >> token){
             
             //for each match, copy object file mesh and translate to center, add to existing new mesh file
             if (token == "M"){
                 
-                inFile >> token >> tObjfilename >> cenX >> cenY >> cenZ;
-                int x,y,z;
-                x = atoi(cenX.c_str());
-                y = atoi(cenY.c_str());
-                z = atoi(cenZ.c_str());
-                ifstream inMeshFile(tObjfilename.c_str(),ios::in);
-                int count=0;
-                if ( inMeshFile.is_open()){
- 
-                        ofstream outfile;
-                        outfile.open("newMesh.txt", std::ios_base::app);
-                    
-                        //Get first line for # n m
-                        int a,b;
-                        string token0, token1, token2, token3;
-                        inMeshFile>>token0 >>token1 >> token2;
-                        a = atoi(token1.c_str());
-                        b = atoi(token2.c_str());
-                        double curM[3];
-                        int faceM[3];
-                        while(inMeshFile >> token0){
-                            
-                            if (token0 == "v"){
-                                //Get vertices information and translate to originate at cluster center
-                                inMeshFile >> token1;
-                                curM[0] = atof(token1.c_str()) + x;
-                                inMeshFile >> token2;
-                                curM[1] = atof(token2.c_str()) + y;
-                                inMeshFile >> token3;
-                                curM[2] = atof(token3.c_str()) + z;
-                                outfile <<"\nv " <<curM[0] << " " <<curM[1] << " "<<curM[2];
-                                count++;
-                            }
-                            cout << verCount << endl;
-                            if (token0 == "f"){
-                                //Get face information and write to file
-                                inMeshFile >> token1;
-                                faceM[0] = atof(token1.c_str()) + verCount;
-                                inMeshFile >> token2;
-                                faceM[1] = atof(token2.c_str()) + verCount;
-                                inMeshFile >> token3;
-                                faceM[2] = atof(token3.c_str()) + verCount;
-                                outfile <<"\nf " <<faceM[0] << " " <<faceM[1] << " "<<faceM[2];
-                            }
-                            
-                        }
-
-                    verCount = verCount + count;
-                    cout << "verCount = " << verCount << endl;
-                    inMeshFile.close();
-                    outfile.close();
-                    
-                }else{
-                    cout << "Unable to open file" << endl;
-                }
-
-                
+                inFile >> token >> tObjfilename;
+                string index = token.c_str();
+                string file = tObjfilename.c_str();
+                newMeshPCA(file, index);
             }
         }
         inFile.close();
+        return;
     }else{
         cout << "Unable to open file" << endl;
     }
