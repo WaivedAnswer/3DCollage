@@ -16,6 +16,8 @@ const int MESHITEMSIZE = 3;
 const int QUADRICSIZE = 10;
 typedef float Point[COORDINATESIZE];
 typedef float Vector3[COORDINATESIZE];
+const float INTERSECTEPS = 0.00000001;
+
 int mod(int x, int m);
 
 void NormalizeVector(float (&vector)[3]);

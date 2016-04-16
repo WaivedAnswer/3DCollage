@@ -30,7 +30,7 @@
 
 
 enum DisplayTypes {WIREFRAME, WIREFRAMEWITHRAYS, SEGMENTED, COLLAGED};
-enum ButtonValues {OPENBUTTON, SAVEBUTTON, DECIMATEBUTTON, QUITBUTTON, COLLAGEBUTTON};
+enum ButtonValues {OPENBUTTON, SAVEBUTTON, DECIMATEBUTTON, VOXELSEGMENTBUTTON, QUITBUTTON, COLLAGEBUTTON};
 
 /** These are the live variables passed into GLUI ***/
 int DISPLAYMODE = WIREFRAME;
@@ -50,6 +50,7 @@ GLUI_Rotation *ROTATION;
 GLUI_Translation *ZOOM;
 GLUI_Translation *TRANSLATION;
 GLUI_Button* DECIMATE;
+GLUI_Button* VOXELSEGMENT;
 //GLUI_Button* OPEN;
 GLUI_EditText* OPENTEXT;
 
@@ -202,20 +203,19 @@ void CleanupLists()
     CleanupVertexList();
 }
 
-
+//Checks Ray Triangle intersection using the Moller Trumbore algorithm
 bool CheckRayTriangleIntersection(Point &v1, Point &v2, Point &v3, Point &origin, Vector3 &ray, float &dist)
 {
     Vector3 e1, e2;
     Vector3 P, Q, T;
     float det, inv_det, u , v;
-    float t;
-    float eps = 0.000001;
     
     CreateVector(v2,v1,e1);
     CreateVector(v3,v1,e2);
     VectorCross(ray, e2, P);
     det = VectorDot(e1, P);
-    if(det > -eps && det < eps )
+
+    if(det > -INTERSECTEPS && det < INTERSECTEPS )
     {
         return false;
     }
@@ -242,10 +242,10 @@ bool CheckRayTriangleIntersection(Point &v1, Point &v2, Point &v3, Point &origin
         return false;
     }
     
-    t = VectorDot(e2, Q) * inv_det;
-    /*if(t<0)
+    dist = VectorDot(e2, Q) * inv_det;
+    /*if(t>eps)
     {
-        return false;
+        return true;
     }*/
     return true;
 
@@ -671,155 +671,6 @@ void DrawWireframeWithRays(void)
     DrawRays();
 }
 
-void DrawVoxelShaded(void)
-{
-    //glEnable(GL_POLYGON_OFFSET_FILL);
-    glDisable(GL_LIGHTING);
-    int gridDim = gridList->GetGridDimension();
-    int count = 0;
-    FaceVoxel ***grid = gridList->GetGrid();
-    Face * currFace = NULL;
-    glBegin(GL_TRIANGLES);
-    for(int i =0; i<gridDim; i++)
-    {
-        for(int j=0; j<gridDim;j++)
-        {
-            for(int k=0; k<gridDim; k++)
-            {
-                //FaceVoxel *test = &grid[i][j][k];
-                std::vector<Face*> faceList = grid[i][j][k].GetFaceList();
-                if(!faceList.empty())
-                {
-                    int colours = 8;
-                    for(std::vector<Face*>::iterator it = faceList.begin(); it != faceList.end(); ++it)
-                    {
-                        currFace = *it;
-                        switch (count%colours)
-                        {
-                            case 0:
-                                glColor3f(0.2f, 0.2f, 0.2f);
-                                break;
-                            case 1:
-                                glColor3f(0.2f, 0.2f, 0.8f);
-                                break;
-                            case 2:
-                                glColor3f(0.2f, 0.8f, 0.2f);
-                                break;
-                            case 3:
-                                glColor3f(0.2f, 0.8f, 0.8f);
-                                break;
-                            case 4:
-                                glColor3f(0.8f, 0.2f, 0.2f);
-                                break;
-                            case 5:
-                                glColor3f(0.8f, 0.2f, 0.8f);
-                                break;
-                            case 6:
-                                glColor3f(0.8f, 0.8f, 0.2f);
-                                break;
-                            case 7:
-                                glColor3f(0.8f, 0.8f, 0.8f);
-                                break;
-                        }
-                        count++;
-                        WingedEdge *originalFaceEdge = currFace->GetEdge();
-                        //W_edge *firstIndexEdge = &EdgeList[0];
-                        WingedEdge *currFaceEdge = originalFaceEdge;
-                        
-                        
-                        //need to repeat first vertex coordinate so MESHITEM + 1
-                        for( int j=0; j<MESHITEMSIZE; j++)
-                        {
-                            
-                            if(currFaceEdge->GetRightFace() == currFace)
-                            {
-                                //TODO modify how/when surface normals are created
-                                
-                                float coordinates[COORDINATESIZE] = {0,0,0};
-                                currFaceEdge->GetStartVertex()->GetCoordinates(coordinates);
-                                
-                                float surfaceNormal[3] = {0,0,0};
-                                currFace->GetNormal(surfaceNormal);
-                                
-                                glNormal3fv(surfaceNormal);
-                                glVertex3fv(coordinates);
-                                currFaceEdge = currFaceEdge->GetRightPrev();
-                            }
-                            else
-                            {
-                                
-                                float coordinates[COORDINATESIZE] = {0,0,0};
-                                currFaceEdge->GetEndVertex()->GetCoordinates(coordinates);
-                                
-                                float surfaceNormal[3] = {0,0,0};
-                                currFace->GetNormal(surfaceNormal);
-                                
-                                glNormal3fv(surfaceNormal);
-                                glVertex3fv(coordinates);
-                                currFaceEdge = currFaceEdge->GetLeftPrev();
-                            }
-                        }
-
-                        
-                    }
-                }
-            }
-        }
-    }
-    glEnd();
-    
-    /*for ( std::vector<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); ++it )
-    {
-
-        Face * currFace = &(*it);
-        if(currFace == NULL)
-        {
-            return;
-        }
-        WingedEdge *originalFaceEdge = currFace->GetEdge();
-        //W_edge *firstIndexEdge = &EdgeList[0];
-        WingedEdge *currFaceEdge = originalFaceEdge;
-        
-        
-        //need to repeat first vertex coordinate so MESHITEM + 1
-        for( int j=0; j<MESHITEMSIZE; j++)
-        {
-            
-            if(currFaceEdge->GetRightFace() == currFace)
-            {
-                //TODO modify how/when surface normals are created
-                
-                float coordinates[COORDINATESIZE] = {0,0,0};
-                currFaceEdge->GetStartVertex()->GetCoordinates(coordinates);
-                
-                float surfaceNormal[3] = {0,0,0};
-                currFace->GetNormal(surfaceNormal);
-                
-                glNormal3fv(surfaceNormal);
-                glVertex3fv(coordinates);
-                currFaceEdge = currFaceEdge->GetRightPrev();
-            }
-            else
-            {
-                
-                float coordinates[COORDINATESIZE] = {0,0,0};
-                currFaceEdge->GetEndVertex()->GetCoordinates(coordinates);
-                
-                float surfaceNormal[3] = {0,0,0};
-                currFace->GetNormal(surfaceNormal);
-                
-                glNormal3fv(surfaceNormal);
-                glVertex3fv(coordinates);
-                currFaceEdge = currFaceEdge->GetLeftPrev();
-            }
-        }
-        
-    }
-    glEnd();*/
-    
-    //glDisable(GL_POLYGON_OFFSET_FILL);
-}
-
 void DrawFlatShaded(void)
 {
     //glEnable(GL_POLYGON_OFFSET_FILL);
@@ -1061,10 +912,16 @@ void glui_cb(int control)
             }*/
             //RayIntersections();
             //VoxelRayIntersections();
-            //Segment();
-            VoxelSegment();
+            Segment();
+            //VoxelSegment();
 
             break;
+        case VOXELSEGMENTBUTTON:
+            //Segment();
+            VoxelSegment();
+            
+            break;
+
         case QUITBUTTON:
 	    CleanupLists();
             exit(EXIT_SUCCESS);
@@ -1507,7 +1364,7 @@ void ReadMeshFile(const char * filename)
         newVertexList.GetMaxAndMinDimensions(maxDimensions, minDimensions);
         
         
-        gridList = new VoxelGrid(maxDimensions, minDimensions, 10);
+        gridList = new VoxelGrid(maxDimensions, minDimensions, 5);
         gridList->InsertFaces(newFaceList);
         newFaceList.CalculateNormals();
         newVertexList.CalculateNormals();
@@ -1759,9 +1616,91 @@ void DrawClusterList()
     
 }
 
-//tests getSegmentationMap with a pyramid mesh to determine whether it clusters correctly
-//also Draws to screen
+void DrawPair(FacePair* pair)
+{
+    Face* currentFace = pair->GetFace1();
+    
+    WingedEdge *originalFaceEdge = currentFace->GetEdge();
+    //W_edge *firstIndexEdge = &EdgeList[0];
+    WingedEdge *currFaceEdge = originalFaceEdge;
+    
+    glColor3f(0.2f, 0.2f, 0.8f);
+    glBegin(GL_TRIANGLES);
+    //need to repeat first vertex coordinate so MESHITEM + 1
+    for( int j=0; j<MESHITEMSIZE; j++)
+    {
+        
+        if(currFaceEdge->GetRightFace() == currentFace)
+        {
+            //TODO modify how/when surface normals are created
+            
+            float coordinates[COORDINATESIZE] = {0,0,0};
+            currFaceEdge->GetStartVertex()->GetCoordinates(coordinates);
+            
+            float surfaceNormal[3] = {0,0,0};
+            currentFace->GetNormal(surfaceNormal);
+            
+            glNormal3fv(surfaceNormal);
+            glVertex3fv(coordinates);
+            currFaceEdge = currFaceEdge->GetRightPrev();
+        }
+        else
+        {
+            
+            float coordinates[COORDINATESIZE] = {0,0,0};
+            currFaceEdge->GetEndVertex()->GetCoordinates(coordinates);
+            
+            float surfaceNormal[3] = {0,0,0};
+            currentFace->GetNormal(surfaceNormal);
+            
+            glNormal3fv(surfaceNormal);
+            glVertex3fv(coordinates);
+            currFaceEdge = currFaceEdge->GetLeftPrev();
+        }
+    }
+    
+    currentFace = pair->GetFace2();
+    originalFaceEdge = currentFace->GetEdge();
+    //W_edge *firstIndexEdge = &EdgeList[0];
+    currFaceEdge = originalFaceEdge;
+    
+    
+    //need to repeat first vertex coordinate so MESHITEM + 1
+    for( int j=0; j<MESHITEMSIZE; j++)
+    {
+        
+        if(currFaceEdge->GetRightFace() == currentFace)
+        {
+            //TODO modify how/when surface normals are created
+            
+            float coordinates[COORDINATESIZE] = {0,0,0};
+            currFaceEdge->GetStartVertex()->GetCoordinates(coordinates);
+            
+            float surfaceNormal[3] = {0,0,0};
+            currentFace->GetNormal(surfaceNormal);
+            
+            glNormal3fv(surfaceNormal);
+            glVertex3fv(coordinates);
+            currFaceEdge = currFaceEdge->GetRightPrev();
+        }
+        else
+        {
+            
+            float coordinates[COORDINATESIZE] = {0,0,0};
+            currFaceEdge->GetEndVertex()->GetCoordinates(coordinates);
+            
+            float surfaceNormal[3] = {0,0,0};
+            currentFace->GetNormal(surfaceNormal);
+            
+            glNormal3fv(surfaceNormal);
+            glVertex3fv(coordinates);
+            currFaceEdge = currFaceEdge->GetLeftPrev();
+        }
+    }
+    glEnd();
+}
 
+//Segments the mesh using a voxelized grid, should speed up for larger meshes
 void VoxelSegment()
 {
     if(clusterList != NULL)
@@ -1770,26 +1709,32 @@ void VoxelSegment()
         clusterList = NULL;
     }
     int k = 30;
+    
     FacePairList pairList;
     FacePairList missList;
+    std::vector<FacePair> intersectPairs;
+    std::vector<float> intersectDistances;
+    std::vector<FaceVoxel> voxelList;
     
     for ( std::vector<Face>::iterator it = newFaceList.GetBeginIterator(); it != newFaceList.GetEndIterator(); ++it )
     {
         Face *firstFace = &(*it);
         Vector3 *rayList = firstFace->MakeRays(k);
+        //Vector3 testRay = {0.0,0.0,0.0};
         float firstFaceCentre[COORDINATESIZE] = {0.0,0.0,0.0};
         firstFace->GetCentre(firstFaceCentre);
         
         for (int i = 0 ; i<k; i++)
         {
-            std::vector<FacePair> intersectPairs;
-            std::vector<float> intersectDistances;
-            std::vector<FaceVoxel> voxelList;
+            std::vector<FacePair>().swap(intersectPairs);
+            std::vector<float>().swap(intersectDistances);
+            std::vector<FaceVoxel>().swap(voxelList);
             gridList->GetVoxelsAlongRay(firstFaceCentre, rayList[i], voxelList);
+            //int x = 0;
+            //std::cout<<x;
             for ( std::vector<FaceVoxel>::iterator it2 =voxelList.begin(); it2 != voxelList.end(); ++it2 )
             {
-                std::vector<Face*> faceList = it2->GetFaceList();
-                for ( std::vector<Face*>::iterator it3 = faceList.begin(); it3 != faceList.end(); ++it3 )
+                for ( std::vector<Face*>::iterator it3 = it2->GetBeginIterator(); it3 != it2->GetEndIterator(); ++it3)
                 {
                     Face *secondFace = (*it3);
                     if(firstFace == secondFace)
@@ -1814,13 +1759,15 @@ void VoxelSegment()
             int minIndex = -1;
             int count = 0;
             float minDistance = -1.0;
-            
+            bool isFirst = true;
             for(std::vector<float>::iterator distit = intersectDistances.begin(); distit != intersectDistances.end(); ++distit)
             {
-                if(minDistance == -1.0 && *distit>0)
+                float dist = *distit;
+                if(isFirst && *distit>0)
                 {
                     minDistance = *distit;
                     minIndex = count;
+                    isFirst = false;
                 }
                 else if(*distit < minDistance && *distit>0)
                 {
@@ -1831,20 +1778,18 @@ void VoxelSegment()
                 count++;
             }
             count = 0;
-            if(minIndex!= - 1)
+            
+            for(std::vector<FacePair>::iterator pairit = intersectPairs.begin(); pairit != intersectPairs.end(); ++pairit)
             {
-                for(std::vector<FacePair>::iterator pairit = intersectPairs.begin(); pairit != intersectPairs.end(); ++pairit)
+                if(count == minIndex)
                 {
-                    if(count == minIndex)
-                    {
-                        pairList.AddPair(*pairit);
-                    }
-                    else
-                    {
-                        missList.AddPair(*pairit);
-                    }
-                    count++;
+                    pairList.AddPair(*pairit);
                 }
+                else
+                {
+                    missList.AddPair(*pairit);
+                }
+                count++;
             }
             
             
@@ -1852,9 +1797,16 @@ void VoxelSegment()
         
         delete[] rayList;
     }
-    clusterList = getSegmentationMap(&pairList,  &missList, &newFaceList, Segments);
-
+    
+    clusterList = getSegmentationMap(&pairList, &missList, &newFaceList, Segments);
+    
+    //DrawPair(pairList.GetPair(0));
+    
+    //std::cout<< voxelList.capacity() << "\n";
 }
+
+//Segments the mesh checking each other face for ray intersections,
+//send out k rays per face, Creates
 void Segment()
 {
     if(clusterList != NULL)
@@ -1883,8 +1835,8 @@ void Segment()
                 Face *secondFace = &(*it2);
                 if(it == it2)
                 {
-                    FacePair pair(firstFace, secondFace);
-                    pairList.AddPair(pair);
+                    //FacePair pair(firstFace, secondFace);
+                    //pairList.AddPair(pair);
                     continue;
                 }
                 float vertices[3][3];
@@ -1901,19 +1853,23 @@ void Segment()
             int minIndex = -1;
             int count = 0;
             float minDistance = -1.0;
+            bool isFirst = true;
             
             for(std::vector<float>::iterator distit = intersectDistances.begin(); distit != intersectDistances.end(); ++distit)
             {
-                if(minDistance == -1.0 && *distit>0)
+                float dist = *distit;
+                if(isFirst && *distit>0)
                 {
                     minDistance = *distit;
                     minIndex = count;
+                    isFirst = false;
                 }
                 else if(*distit < minDistance && *distit>0)
                 {
                     minDistance = *distit;
                     minIndex = count;
                 }
+
                 count++;
             }
             count = 0;
@@ -1940,7 +1896,7 @@ void Segment()
     }
     
     
-    clusterList = getSegmentationMap(&pairList,  &missList, &newFaceList, Segments);
+    clusterList = getSegmentationMap(&pairList, &missList, &newFaceList, Segments);
     
     
 }
@@ -1968,7 +1924,7 @@ void myGlutReshape( int x, int y )
     
     glMatrixMode( GL_PROJECTION );
     glLoadIdentity();
-    glFrustum( -xy_aspect*.08, xy_aspect*.08, -.08, .08, .1, 15.0 );
+    glFrustum( -xy_aspect*.08, xy_aspect*.08, -.08, .08, .1, 150.0 );
     
     glutPostRedisplay();
 }
@@ -2001,9 +1957,6 @@ void myGlutDisplay( void )
                 DrawWireframe();
                 break;
             case WIREFRAMEWITHRAYS:
-                //DrawClusterList();
-                //DrawVoxelShaded();
-                //glEnable(GL_LIGHTING);
                 //DrawFlatShaded();
                 DrawWireframeWithRays();
                 break;
@@ -2085,6 +2038,7 @@ int main(int argc, char * argv[]) {
     
     GLUI_Panel * DecimatePanel = glui->add_panel("Segment Panel");
     DECIMATE = glui->add_button_to_panel(DecimatePanel, "Segment", DECIMATEBUTTON, glui_cb);
+    VOXELSEGMENT = glui->add_button_to_panel(DecimatePanel, "VoxelSegment", VOXELSEGMENTBUTTON, glui_cb);
     
     glui->add_separator();
     

@@ -196,20 +196,20 @@ Vector3* Face::MakeRays(int k)
 {
     Vector3 *rayList = new Vector3[k];
     Vector3 xaxis = {1.0, 0.0, 0.0};
-    Vector3 yaxis = {0.0, 0.0, 0.0};
+    Vector3 yaxis = {0.0, 1.0, 0.0};
     //unit vectors perpendicular to normal
     Vector3 a, b;
     Vector3 c = {-normal[0], -normal[1], -normal[2]};
     
     double angle = M_PI*30.0/180.0; //30 degrees in radians
-    bool isXAxis = true;
-    for (int i=0; i<3; i++)
-    {
-        if(c[i] != xaxis[i])
-        {
-            isXAxis = false;
-        }
-    }
+    bool isXAxis =  (c[0] == xaxis[0] &&
+                    c[1] == xaxis[1] &&
+                    c[2] == xaxis[2]) ||
+                    (c[0] == -xaxis[0] &&
+                    c[1] == -xaxis[1] &&
+                    c[2] == -xaxis[2]);
+    
+   
     if(!isXAxis)
     {
         VectorCross(c, xaxis, a);
