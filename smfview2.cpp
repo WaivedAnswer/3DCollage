@@ -2045,34 +2045,36 @@ int main(int argc, char * argv[]) {
     TRANSLATION = glui->add_translation("Translate", GLUI_TRANSLATION_XY, XY_TRANS);
     glui->add_separator();
     
-    GLUI_Panel * DecimatePanel = glui->add_panel("Segment Panel");
-    DECIMATE = glui->add_button_to_panel(DecimatePanel, "Segment", DECIMATEBUTTON, glui_cb);
-    VOXELSEGMENT = glui->add_button_to_panel(DecimatePanel, "VoxelSegment", VOXELSEGMENTBUTTON, glui_cb);
-    
-    glui->add_separator();
-    
-    GLUI_Panel * OpenPanel = glui->add_panel("Open Panel");
+    GLUI_Panel * OpenPanel = glui->add_panel("Open Target Panel");
     //OPEN = glui->add_button_to_panel(OpenPanel, "Open", OPENBUTTON, glui_cb);
     OPENTEXT = glui->add_edittext_to_panel(OpenPanel, "Filename", GLUI_EDITTEXT_TEXT, OPENFILENAME, OPENBUTTON, glui_cb);
     
-    GLUI_Panel * OpenObjPanel = glui->add_panel("Open Object file Panel");
+    GLUI_Panel * OpenObjPanel = glui->add_panel("Open Object Panel");
     LOADOBJTEXT = glui->add_edittext_to_panel(OpenObjPanel, "Filename", GLUI_EDITTEXT_TEXT, LOADOBJNAME, NULL, glui_cb);
     LOADOBJPCA = glui->add_button_to_panel(OpenObjPanel, "Load file", LOADOBJBUTTON, glui_cb);
-//    
-//    GLUI_Panel * getClusterPCAPanel = glui->add_panel("Get Cluster PCA Panel");
-//   CLUSTERPCA = glui->add_button_to_panel(getClusterPCAPanel, "Get now", CLUSTERBUTTON, glui_cb);
-//    
     
-    GLUI_Panel * SavePanel = glui->add_panel("Save Panel");
-    //SAVE = glui->add_button_to_panel(SavePanel, "Save", SAVEBUTTON, glui_cb);
-    SAVETEXT = glui->add_edittext_to_panel(SavePanel, "Filename", GLUI_EDITTEXT_TEXT, SAVEFILENAME, SAVEBUTTON, glui_cb);
+    
+    GLUI_Panel * DecimatePanel = glui->add_panel("Segment Panel");
+//    DECIMATE = glui->add_button_to_panel(DecimatePanel, "Segment", DECIMATEBUTTON, glui_cb);
+    VOXELSEGMENT = glui->add_button_to_panel(DecimatePanel, "VoxelSegment", VOXELSEGMENTBUTTON, glui_cb);
+    GLUI_EditText *SegmentSpinner = glui->add_edittext_to_panel(DecimatePanel, "Number of Segments", GLUI_EDITTEXT_INT, &Segments );
+    SegmentSpinner->set_int_limits(1, 8);
+    
+
+    
+    glui->add_separator();
+    
+    
+//    
+//    GLUI_Panel * SavePanel = glui->add_panel("Save Panel");
+//    //SAVE = glui->add_button_to_panel(SavePanel, "Save", SAVEBUTTON, glui_cb);
+//    SAVETEXT = glui->add_edittext_to_panel(SavePanel, "Filename", GLUI_EDITTEXT_TEXT, SAVEFILENAME, SAVEBUTTON, glui_cb);
     
     glui->add_separator();
 
     GLUI_Panel * CollagePanel = glui->add_panel("Collage Panel");
-    GLUI_EditText *SegmentSpinner = glui->add_edittext_to_panel(CollagePanel, "Number of Segments", GLUI_EDITTEXT_INT, &Segments );
-    SegmentSpinner->set_int_limits(1, 8);
     GLUI_Button *CollagifyButton = glui->add_button_to_panel(CollagePanel, "Collagify", COLLAGEBUTTON, glui_cb);
+   
 
     
     glui->add_separator();
