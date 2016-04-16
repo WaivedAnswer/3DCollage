@@ -1,11 +1,10 @@
-function newMesh(filename, index, startnum)
+function newMesh(filename, index)
 
-% filename = 'man.smf'
 [X2, X2vsize] = read_smf(filename);
 [pc1, cenX, cenY, cenZ] = objPCA(filename);
 vec1 = pc1(1,(1:3));
 [pca, cen]= getClusterPCA(index);
-
+pca
 vec2 = pca(1,(1:3));
 H = transpose(vec1)*vec2;
 
@@ -20,7 +19,7 @@ X2 = X2*R;
 newCenX = sum(X2(:,1))/numPoint;
 newCenY = sum(X2(:,2))/numPoint;
 newCenZ = sum(X2(:,3))/numPoint;
-% figure
+figure
 % scatter3(X1(:,1), X1(:,2), X1(:,3));
 X2(:,1) = X2(:,1)-newCenX+cenX;
 X2(:,2) = X2(:,2)-newCenY+cenY;

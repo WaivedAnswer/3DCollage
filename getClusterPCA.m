@@ -12,10 +12,14 @@ fid = fopen('clusterPCA.txt', 'r');
         line = fgetl(fid);
         if length(line) > 0 & line(1) == 'C'
             dummy = sscanf(line, '%c %f %f %f %f %f %f %f %f %f %f %f %f %f');
+            clustid = dummy(2);
+            if(clustid == index)
             pca(1, :) = dummy(3:5, :);
             cen(1, :) = dummy(12:14, :);
+            end
         end
     end
+
 
 fclose(fid);
 % scatter3(cen(1,1), cen(1,2), cen(1,3), 'r*');
