@@ -1072,7 +1072,7 @@ void glui_cb(int control)
             break;
         case COLLAGEBUTTON:
             // call the PCA stuff
-//            fclPCA(clusterList);
+            fclPCA(clusterList);
             comparePCA();
             generateNewMeshFile();
             //get new mesh
