@@ -74,9 +74,14 @@ void FaceVoxel::GetCoordinates(float (&vcoordinates)[COORDINATESIZE])
     }
 }
 
-std::vector<Face*> FaceVoxel::GetFaceList()
+std::vector<Face*>::iterator FaceVoxel::GetBeginIterator()
 {
-    return faceList;
+    return faceList.begin();
+}
+
+std::vector<Face*>::iterator FaceVoxel::GetEndIterator()
+{
+    return faceList.end();
 }
 
 bool FaceVoxel::CheckIfInVoxel(Face *face)

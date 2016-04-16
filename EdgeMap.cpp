@@ -24,17 +24,21 @@ EdgeMap::EdgeMap(int size, VertexMap *vList, FaceMap *fList)
 
 EdgeMap::~EdgeMap()
 {
-
-    for (int i = 0; i < tableSize; i++)
+    if(table != NULL)
     {
-        WingedEdge * current = table[i];
-        WingedEdge * next = NULL;
-        while(current != NULL)
+        for (int i = 0; i < tableSize; i++)
         {
-            next = current->GetNext();
-            delete current;
-            current = next;
+            WingedEdge * current = table[i];
+            WingedEdge * next = NULL;
+            while(current != NULL)
+            {
+                next = current->GetNext();
+                delete current;
+                current = next;
+            }
         }
+        delete table;
+        table = NULL;
     }
 }
 
@@ -810,7 +814,10 @@ void EdgeMap::MCDecimateEdge(int k)
     //CollapseEdge(GetEdge(44,918), newVcoordinates);
     //ReHashEdges();
     //maxEdge->CheckEdgeForVertex(NULL);
-    delete[] kEdges;
+    if(kEdges!=NULL)
+    {
+        delete[] kEdges;
+    }
 }
 void EdgeMap::MCDecimateNEdges(int N, int k)
 {

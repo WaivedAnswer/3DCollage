@@ -8,6 +8,7 @@
 
 #include "VoxelGrid.hpp"
 #include <cmath>
+#include <iostream>
 void CalculateVoxelDimensions(float (&voxelDimensions)[COORDINATESIZE], const float (&maxDimensions)[COORDINATESIZE], const float (&minDimensions)[COORDINATESIZE], int gridDimension)
 {
     float negMinDimensions[COORDINATESIZE] = {0.0,0.0,0.0};
@@ -22,7 +23,6 @@ void CalculateVoxelDimensions(float (&voxelDimensions)[COORDINATESIZE], const fl
 
 VoxelGrid::VoxelGrid(const float (&maxDimensions)[COORDINATESIZE], const float (&minDimensions)[COORDINATESIZE], int voxelGridDimension)
 {
-    float voxelDimensions[COORDINATESIZE] = {0.0,0.0,0.0};
     gridDimension = voxelGridDimension;
     //copies boundaries
     for (int i = 0; i<COORDINATESIZE; i++)
@@ -69,12 +69,6 @@ VoxelGrid::~VoxelGrid()
 
 void VoxelGrid::InsertFaces(FaceMap &faceList)
 {
-    float voxelDimensions[COORDINATESIZE] = {0.0,0.0,0.0};
-    
-    CalculateVoxelDimensions(voxelDimensions, maxDims, minDims, gridDimension);
-    
-    
-
     for ( std::vector<Face>::iterator it = faceList.GetBeginIterator(); it != faceList.GetEndIterator(); ++it )
     {
         Face * currFace = &(*it);
@@ -155,21 +149,28 @@ void VoxelGrid::InsertFaces(FaceMap &faceList)
 
 void VoxelGrid::GetVoxelsAlongRay(const Point &origin, const Vector3 &ray, std::vector<FaceVoxel> &voxelList)
 {
-    float voxelDimensions[COORDINATESIZE] = {0.0,0.0,0.0};
-    CalculateVoxelDimensions(voxelDimensions, maxDims, minDims, gridDimension);
-    
     //starting grid indexes
-    
+    std::vector<FaceVoxel>().swap(voxelList);
     int indexes[COORDINATESIZE] = {0,0,0};
     for (int i = 0; i<COORDINATESIZE; i++)
     {
-        indexes[i] = static_cast<int>((origin[i]-minDims[i])/voxelDimensions[i] + 0.5);
+        /*indexes[i] = static_cast<int>((origin[i]-minDims[i])/voxelDimensions[i] + 0.5);
+        if(indexes[i]>gridDimension-1)
+        {
+            indexes[i] = gridDimension-1;
+        }*/
+        indexes[i] = static_cast<int>(floorf((origin[i]-minDims[i])/voxelDimensions[i]));
         if(indexes[i]>gridDimension-1)
         {
             indexes[i] = gridDimension-1;
         }
+        else if(indexes[i]<0)
+        {
+            indexes[i] = 0;
+        }
+
     }
-    
+    //std::cout<< gridDimension <<"\n";
     int steps[3];
     for(int i = 0; i <3 ; i++)
     {
@@ -200,16 +201,17 @@ void VoxelGrid::GetVoxelsAlongRay(const Point &origin, const Vector3 &ray, std::
     {
         tDelta[i] = fabs(voxelDimensions[i]/ray[i]);
     }
-    
-    while(1)
+    int maxSteps = gridDimension;
+    while(maxSteps>0)
     {
+        maxSteps--;
         if(tMax[0] < tMax[1])
         {
             if(tMax[0] < tMax[2])
             {
                 indexes[0]= indexes[0] + steps[0];
                 if(indexes[0] == gridDimension || indexes[0]<0)
-                    return; /* outside grid */
+                    return; //outside grid
                 tMax[0]= tMax[0] + tDelta[0];
             }
             else

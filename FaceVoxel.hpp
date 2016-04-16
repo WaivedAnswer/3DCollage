@@ -25,7 +25,8 @@ public:
     void SetCoordinates(const float (&vcoordinates)[COORDINATESIZE]);
     void GetCoordinates(float (&vcoordinates)[COORDINATESIZE]);
     //make this quicker
-    std::vector<Face*> GetFaceList();
+    std::vector<Face*>::iterator GetBeginIterator();
+    std::vector<Face*>::iterator GetEndIterator();
     //fix this later
     bool CheckIfInVoxel(Face *face);
     void AddFace(Face *face);

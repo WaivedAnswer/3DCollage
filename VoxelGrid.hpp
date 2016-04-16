@@ -27,6 +27,7 @@ private:
     FaceVoxel ***grid;
     float maxDims[COORDINATESIZE];
     float minDims[COORDINATESIZE];
+    float voxelDimensions[COORDINATESIZE];
     int gridDimension;
 };
 #endif /* VoxelGrid_hpp */
