@@ -20,6 +20,7 @@
 #include "Eigen/Dense"
 #include <fstream>
 
+
 #define  BUFSIZE 256
 
 using namespace std;
@@ -28,6 +29,7 @@ using namespace Eigen;
 int vnum, fnum;
 MatrixXd Mesh, fMesh;
 string filename;
+double objPca[3], clusterPca[3], cen[3];
 
 
 void readSMF(string filename){
@@ -142,7 +144,7 @@ int matlabObjPCA(double M_x[], double M_y[], double M_z[],int vsize, string file
     engEvalString(ep, "[pc,~,~,~] = pca(V);");
     
     if (type==1){
-        cout << "gen cluster file" << endl;
+//        cout << "gen cluster file" << endl;
         engEvalString(ep, "cenX = sum(V(:,1))/numPoint;");
         engEvalString(ep, "cenY = sum(V(:,2))/numPoint;");
         engEvalString(ep, "cenZ = sum(V(:,3))/numPoint;");
@@ -167,6 +169,171 @@ int matlabObjPCA(double M_x[], double M_y[], double M_z[],int vsize, string file
     return EXIT_SUCCESS;
     
 }
+
+void getobjPCA(string filename){
+    string token0, token1, token2, token3;
+    string objFileindex = "objPCA.txt";
+    ifstream inFile(objFileindex.c_str(),ios::in);
+    
+    if (inFile.is_open())
+    {
+        while(inFile >> token0){
+            if (token0 == "O"){
+                //Get vertices information
+                inFile >> token0;
+                if ( token0 == filename)
+                inFile >> token1;
+                objPca[0] = atof(token1.c_str());
+                inFile >> token1;
+                objPca[1] = atof(token1.c_str());
+                inFile >> token1;
+                objPca[2] = atof(token1.c_str());
+            }
+        inFile.close();
+        }
+    }else{
+        cout << "Unable to open file" << endl;
+    }
+}
+
+void getClusterPCA(string filename){
+    string token0, token1, token2, token3;
+    string objFileindex = "clusterPCA.txt";
+    ifstream inFile(objFileindex.c_str(),ios::in);
+    
+    if (inFile.is_open())
+    {
+        while(inFile >> token0){
+            if (token0 == "O"){
+                //Get vertices information
+                inFile >> token0;
+                if ( token0 == filename)
+                    inFile >> token1;
+                clusterPca[0] = atof(token1.c_str());
+                inFile >> token1;
+                clusterPca[1] = atof(token1.c_str());
+                inFile >> token1;
+                clusterPca[2] = atof(token1.c_str());
+            }
+            inFile.close();
+        }
+    }else{
+        cout << "Unable to open file" << endl;
+    }
+}
+
+int getMeshVnum(string filename){
+    int objVnum = 0;
+    
+    int a;
+    string token0, token1, token2, token3;
+    ifstream inFile(filename.c_str(),ios::in);
+    Mesh.resize(0,0);
+    fMesh.resize(0,0);
+    
+    if (inFile.is_open())
+    {
+        // cout << "OPen" << endl;
+        //Get first line for # n m
+        inFile>>token0 >>token1 >> token2;
+        a = atoi(token1.c_str());
+        objVnum = a;
+        inFile.close();
+    }else{
+        cout << "Unable to open file" << endl;
+    }
+    
+    return objVnum;
+}
+
+int getMeshFnum(string filename){
+    int objFnum = 0;
+    
+    int a;
+    string token0, token1, token2, token3;
+    ifstream inFile(filename.c_str(),ios::in);
+    Mesh.resize(0,0);
+    fMesh.resize(0,0);
+    
+    if (inFile.is_open())
+    {
+        // cout << "OPen" << endl;
+        //Get first line for # n m
+        inFile>>token0 >>token1 >> token2;
+        a = atoi(token2.c_str());
+        objFnum = a;
+        inFile.close();
+    }else{
+        cout << "Unable to open file" << endl;
+    }
+    
+    return objFnum;
+    
+}
+
+void getClusterCen(string index){
+    string token0, token1, token2, token3;
+    ifstream inFile(filename.c_str(),ios::in);
+    Mesh.resize(0,0);
+    fMesh.resize(0,0);
+    if (inFile.is_open())
+    {
+        while(inFile >> token0){
+            if (token0 == "C"){
+                inFile >>token0;
+                if (token0 == index){
+                    inFile>>token0 >>token0 >> token0;
+                    inFile>>token0 >>token0 >> token0;
+                    inFile>>token0 >>token0 >> token0;
+                    inFile>>token1 >>token2 >> token3;
+                    
+                    cen[0] = atoi(token1.c_str());
+                    cen[1] = atoi(token2.c_str());
+                    cen[2] = atoi(token3.c_str());
+                }
+            }
+        }
+        inFile.close();
+    }else{
+        cout << "Unable to open file" << endl;
+    }
+    
+}
+
+int newMeshPCA(string filename, string index)
+{
+    //pass object filename to matlab
+    //pass center of cluster to matlab
+    //pass pca of cluster to matlab
+    //use matlab to compute PCA
+    
+    Engine *ep;
+    string opc1, opc2, opc3, cpc1, cpc2, cpc3, cen1, cen2, cen3;
+    string comm="";
+    
+    //Call engOpen with the application's Path. Open a Matlab process.
+    if (!(ep = engOpen("/Applications/MATLAB_R2015b.app/bin/./matlab"))) {
+        fprintf(stderr, "\nCan't start MATLAB engine\n");
+        return EXIT_FAILURE;
+    }
+    getobjPCA(filename);
+    getClusterPCA(index);
+    
+    comm = ("newMesh('"+filename+"', "+index+")");
+    cout << comm << endl;
+    engEvalString(ep, comm.c_str());
+
+//    
+//    
+//    //free variables
+//    mxDestroyArray(X);
+//    mxDestroyArray(Y);
+//    mxDestroyArray(Z);
+    
+    return EXIT_SUCCESS;
+    
+}
+
 
 
 void fclPCA(FaceClusterList *fcl)
@@ -303,83 +470,23 @@ void generateNewMeshFile()
     string filename = "match.txt";
     string tObjfilename, token, cenX, cenY, cenZ;
     ifstream inFile(filename.c_str(),ios::in);
-
-    
-    //match: clusterIndex, objectFile, center
-    
-    //read in all v and f from objectfile
-    //tranlate v by center
-    //Append to NewMesh.txt file
    
     
     if (inFile.is_open())
     {
-       int verCount =0;
         while(inFile >> token){
             
             //for each match, copy object file mesh and translate to center, add to existing new mesh file
             if (token == "M"){
                 
-                inFile >> token >> tObjfilename >> cenX >> cenY >> cenZ;
-                int x,y,z;
-                x = atoi(cenX.c_str());
-                y = atoi(cenY.c_str());
-                z = atoi(cenZ.c_str());
-                ifstream inMeshFile(tObjfilename.c_str(),ios::in);
-                int count=0;
-                if ( inMeshFile.is_open()){
- 
-                        ofstream outfile;
-                        outfile.open("newMesh.txt", std::ios_base::app);
-                    
-                        //Get first line for # n m
-                        int a,b;
-                        string token0, token1, token2, token3;
-                        inMeshFile>>token0 >>token1 >> token2;
-                        a = atoi(token1.c_str());
-                        b = atoi(token2.c_str());
-                        double curM[3];
-                        int faceM[3];
-                        while(inMeshFile >> token0){
-                            
-                            if (token0 == "v"){
-                                //Get vertices information and translate to originate at cluster center
-                                inMeshFile >> token1;
-                                curM[0] = atof(token1.c_str()) + x;
-                                inMeshFile >> token2;
-                                curM[1] = atof(token2.c_str()) + y;
-                                inMeshFile >> token3;
-                                curM[2] = atof(token3.c_str()) + z;
-                                outfile <<"\nv " <<curM[0] << " " <<curM[1] << " "<<curM[2];
-                                count++;
-                            }
-                            cout << verCount << endl;
-                            if (token0 == "f"){
-                                //Get face information and write to file
-                                inMeshFile >> token1;
-                                faceM[0] = atof(token1.c_str()) + verCount;
-                                inMeshFile >> token2;
-                                faceM[1] = atof(token2.c_str()) + verCount;
-                                inMeshFile >> token3;
-                                faceM[2] = atof(token3.c_str()) + verCount;
-                                outfile <<"\nf " <<faceM[0] << " " <<faceM[1] << " "<<faceM[2];
-                            }
-                            
-                        }
-
-                    verCount = verCount + count;
-                    cout << "verCount = " << verCount << endl;
-                    inMeshFile.close();
-                    outfile.close();
-                    
-                }else{
-                    cout << "Unable to open file" << endl;
-                }
-
-                
+                inFile >> token >> tObjfilename;
+                string index = token.c_str();
+                string file = tObjfilename.c_str();
+                newMeshPCA(file, index);
             }
         }
         inFile.close();
+        return;
     }else{
         cout << "Unable to open file" << endl;
     }
@@ -387,17 +494,30 @@ void generateNewMeshFile()
 }
 
 void deleteFiles(){
-        if( remove( "match.txt" ) != 0 || remove( "objPCA.txt" ) != 0 || remove( "clusterPCA.txt" ) != 0 )
+        if( remove( "match.txt" ) != 0 || remove( "objPCA.txt" ) != 0 || remove( "clusterPCA.txt" ) != 0 || remove( "newMesh.smf" ) != 0 )
             perror( "Error deleting file" );
         else
             puts( "File successfully deleted" );
     return;
 }
 
+void readObjPCA(string filename){
+    readSMF(filename);
+        if (vnum!=0){
+            double M_x[vnum],M_y[vnum],M_z[vnum];
+            for (int i=0; i<vnum; i++){
+                M_x[i] = Mesh(0,i);
+                M_y[i] = Mesh(1,i);
+                M_z[i] = Mesh(2,i);
+            }
+            matlabObjPCA(M_x,M_y,M_z,vnum, filename, 2);
+        }
+}
 
 int test()
 {
-//    string filename = "man.smf";
+    string filename = "man.smf";
+    string index = "0";
 //    readSMF(filename);
 //    if (vnum!=0){
 //        double M_x[vnum],M_y[vnum],M_z[vnum];
@@ -408,10 +528,11 @@ int test()
 //        }
 //        matlabObjPCA(M_x,M_y,M_z,vnum, filename, 2);
 //    }
-    comparePCA();
-    generateNewMeshFile();
-    
-    
+//    comparePCA();
+//    generateNewMeshFile();
+    cout << "test()" << endl;
+    newMeshPCA(filename, index);
+
     return 0;
 }
 

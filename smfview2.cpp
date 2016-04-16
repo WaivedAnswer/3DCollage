@@ -30,7 +30,7 @@
 
 
 enum DisplayTypes {WIREFRAME, WIREFRAMEWITHRAYS, SEGMENTED, COLLAGED};
-enum ButtonValues {OPENBUTTON, SAVEBUTTON, DECIMATEBUTTON, VOXELSEGMENTBUTTON, QUITBUTTON, COLLAGEBUTTON};
+enum ButtonValues {OPENBUTTON, SAVEBUTTON, DECIMATEBUTTON, VOXELSEGMENTBUTTON, QLOADOBJBUTTON, QUITBUTTON, COLLAGEBUTTON, CLUSTERBUTTON};
 
 /** These are the live variables passed into GLUI ***/
 int DISPLAYMODE = WIREFRAME;
@@ -43,16 +43,16 @@ float ROTATION_MATRIX[16];
 float Z_TRANS = 0;
 float XY_TRANS[2] = {0,0};
 char OPENFILENAME[200] = "";
+char LOADOBJNAME[200] = "";
 char SAVEFILENAME[200] = "";
 
 //GLUI pointers
 GLUI_Rotation *ROTATION;
 GLUI_Translation *ZOOM;
 GLUI_Translation *TRANSLATION;
-GLUI_Button* DECIMATE;
-GLUI_Button* VOXELSEGMENT;
+GLUI_Button* DECIMATE, * LOADOBJPCA, *CLUSTERPCA, * VOXELSEGMENT;
 //GLUI_Button* OPEN;
-GLUI_EditText* OPENTEXT;
+GLUI_EditText* OPENTEXT, * LOADOBJTEXT;
 
 //GLUI_Button* SAVE;
 GLUI_EditText* SAVETEXT;
@@ -887,6 +887,7 @@ void glui_cb(int control)
 {
     std::string savename = SAVEFILENAME;
     std::string openname = OPENFILENAME;
+    std::string loadname = LOADOBJNAME;
     /*const char * n = DECIMATENTEXT->get_text();
     std::string Nstr = n;
     const char * k = DECIMATEKTEXT->get_text();
@@ -919,7 +920,6 @@ void glui_cb(int control)
         case VOXELSEGMENTBUTTON:
             //Segment();
             VoxelSegment();
-            
             break;
 
         case QUITBUTTON:
@@ -928,7 +928,15 @@ void glui_cb(int control)
             break;
         case COLLAGEBUTTON:
             // call the PCA stuff
+            fclPCA(clusterList);
+            comparePCA();
+            generateNewMeshFile();
+            //get new mesh
             break;
+        case LOADOBJBUTTON:
+            readObjPCA(&loadname[0]);
+            break;
+            
     }
 }
 
@@ -1525,7 +1533,6 @@ void DrawClusterList()
         return;
     }
     
-    
     int clusterCount = 0;
     glDisable(GL_LIGHTING);
     
@@ -1811,6 +1818,7 @@ void Segment()
 {
     if(clusterList != NULL)
     {
+        
         delete clusterList;
         clusterList = NULL;
     }
@@ -1986,6 +1994,7 @@ int main(int argc, char * argv[]) {
     glutInitDisplayMode( GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH );
     glutInitWindowPosition( 50, 50 );
     glutInitWindowSize( 300, 300 );
+    deleteFiles();
     
     MAIN_WINDOW = glutCreateWindow( "SMF_VIEW" );
     glutDisplayFunc( myGlutDisplay );
@@ -2045,6 +2054,14 @@ int main(int argc, char * argv[]) {
     GLUI_Panel * OpenPanel = glui->add_panel("Open Panel");
     //OPEN = glui->add_button_to_panel(OpenPanel, "Open", OPENBUTTON, glui_cb);
     OPENTEXT = glui->add_edittext_to_panel(OpenPanel, "Filename", GLUI_EDITTEXT_TEXT, OPENFILENAME, OPENBUTTON, glui_cb);
+    
+    GLUI_Panel * OpenObjPanel = glui->add_panel("Open Object file Panel");
+    LOADOBJTEXT = glui->add_edittext_to_panel(OpenObjPanel, "Filename", GLUI_EDITTEXT_TEXT, LOADOBJNAME, NULL, glui_cb);
+    LOADOBJPCA = glui->add_button_to_panel(OpenObjPanel, "Load file", LOADOBJBUTTON, glui_cb);
+//    
+//    GLUI_Panel * getClusterPCAPanel = glui->add_panel("Get Cluster PCA Panel");
+//   CLUSTERPCA = glui->add_button_to_panel(getClusterPCAPanel, "Get now", CLUSTERBUTTON, glui_cb);
+//    
     
     GLUI_Panel * SavePanel = glui->add_panel("Save Panel");
     //SAVE = glui->add_button_to_panel(SavePanel, "Save", SAVEBUTTON, glui_cb);
