@@ -494,7 +494,7 @@ void generateNewMeshFile()
 }
 
 void deleteFiles(){
-        if( remove( "match.txt" ) != 0 || remove( "objPCA.txt" ) != 0 || remove( "clusterPCA.txt" ) != 0 )
+        if( remove( "match.txt" ) != 0 || remove( "objPCA.txt" ) != 0 || remove( "clusterPCA.txt" ) != 0 || remove( "newMesh.smf" ) != 0 )
             perror( "Error deleting file" );
         else
             puts( "File successfully deleted" );
