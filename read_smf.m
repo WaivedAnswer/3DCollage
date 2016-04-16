@@ -13,7 +13,7 @@
 % Modified by Cathy Yiu 8th April,2016
 %
 
-function V = read_smf(filename)
+function [V, vnum] = read_smf(filename)
 
     fid = fopen(filename, 'r');
     if fid == -1
