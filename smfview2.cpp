@@ -1077,9 +1077,6 @@ void glui_cb(int control)
             generateNewMeshFile();
             //get new mesh
             break;
-        case CLUSTERBUTTON:
-            
-            break;
         case LOADOBJBUTTON:
             readObjPCA(&loadname[0]);
             break;
@@ -2045,6 +2042,7 @@ int main(int argc, char * argv[]) {
     glutInitDisplayMode( GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH );
     glutInitWindowPosition( 50, 50 );
     glutInitWindowSize( 300, 300 );
+    deleteFiles();
     
     MAIN_WINDOW = glutCreateWindow( "SMF_VIEW" );
     glutDisplayFunc( myGlutDisplay );
@@ -2107,10 +2105,10 @@ int main(int argc, char * argv[]) {
     GLUI_Panel * OpenObjPanel = glui->add_panel("Open Object file Panel");
     LOADOBJTEXT = glui->add_edittext_to_panel(OpenObjPanel, "Filename", GLUI_EDITTEXT_TEXT, LOADOBJNAME, NULL, glui_cb);
     LOADOBJPCA = glui->add_button_to_panel(OpenObjPanel, "Load file", LOADOBJBUTTON, glui_cb);
-    
-    GLUI_Panel * getClusterPCAPanel = glui->add_panel("Get Cluster PCA Panel");
-   CLUSTERPCA = glui->add_button_to_panel(getClusterPCAPanel, "Get now", CLUSTERBUTTON, glui_cb);
-    
+//    
+//    GLUI_Panel * getClusterPCAPanel = glui->add_panel("Get Cluster PCA Panel");
+//   CLUSTERPCA = glui->add_button_to_panel(getClusterPCAPanel, "Get now", CLUSTERBUTTON, glui_cb);
+//    
     
     GLUI_Panel * SavePanel = glui->add_panel("Save Panel");
     //SAVE = glui->add_button_to_panel(SavePanel, "Save", SAVEBUTTON, glui_cb);
